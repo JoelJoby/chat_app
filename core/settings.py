@@ -149,3 +149,8 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = '/chat/general/'
 LOGOUT_REDIRECT_URL = 'login'
 
+# CSRF and Session Settings to avoid conflicts
+CSRF_COOKIE_NAME = "pied_piper_csrftoken"
+SESSION_COOKIE_NAME = "pied_piper_sessionid"
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1:8000']
+

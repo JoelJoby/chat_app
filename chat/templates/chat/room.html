@@ -7,7 +7,17 @@
 
 <body>
 
+
+    <div style="float: right;">
+        Logged in as: {{ user.email }}
+        <form action="{% url 'logout' %}" method="post" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit">Logout</button>
+        </form>
+    </div>
+
     <h2>Room: {{ room_name }}</h2>
+
 
     <textarea id="chat-log" cols="100" rows="20"></textarea><br>
     <input id="chat-message-input" type="text" size="100">

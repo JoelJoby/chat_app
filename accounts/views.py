@@ -22,7 +22,7 @@ def login_view(request):
             login(request, user)
             return redirect('chat:room', room_name='general') # Redirect to chat room after login
     else:
-        form = UserLoginForm()
+        form = UserLoginForm(request)
     return render(request, 'accounts/login.html', {'form': form})
 
 def logout_view(request):
