@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Pied Piper</title>
+    <link href="{% static 'dist/css/lib/bootstrap.min.css' %}" type="text/css" rel="stylesheet">
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .video-background {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+            filter: blur(3px);
+            /* Blur the video */
+            transform: scale(1.1);
+            /* Prevent blurred edges */
+            object-fit: cover;
+        }
+
+        .centered-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.85);
+            /* White with transparency */
+            padding: 40px;
+            border-radius: 20px;
+            /* Curved edges */
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+    </style>
+</head>
+
+<body>
+    <video autoplay muted loop class="video-background">
+        <source src="{% static 'videos/Background.mp4' %}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
+    <div class="centered-box">
+        <h1>Welcome to Pied Piper, {{ user.username|default:"Guest" }}!</h1>
+        {% if user.is_authenticated %}
+        <p class="mb-4">You are logged in.</p>
+        <form action="{% url 'logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger btn-lg w-100">Logout</button>
+        </form>
+        <a href="{% url 'chat:room' 'general' %}" class="btn btn-success btn-lg w-100 mt-3">Go to Chat</a>
+        {% else %}
+        <p class="mb-4">You are not logged in.</p>
+        <a href="{% url 'login' %}" class="btn btn-primary btn-lg w-100">Sign In</a>
+        <a href="{% url 'register' %}" class="btn btn-secondary btn-lg w-100 mt-2">Sign Up</a>
+        {% endif %}
+    </div>
+</body>
+
+</html>
