@@ -5,7 +5,7 @@ from .models import CustomUser
 class UserRegistrationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ('email', 'username')
+        fields = ('username', 'email')
 
 class UserLoginForm(AuthenticationForm):
     username = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}))
