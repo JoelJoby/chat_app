@@ -48,6 +48,13 @@
                                                 placeholder="Password" required>
                                             <button class="btn icon"><i class="material-icons">lock_outline</i></button>
                                         </div>
+                                        {% if field.help_text %}
+                                        <small class="form-text text-muted"
+                                            style="display: block; margin-top: -15px; margin-bottom: 15px; font-size: 0.8em; color: #6c757d;">
+                                            {{ field.help_text|safe }}
+                                        </small>
+                                        {% endif %}
+
                                         {% endif %}
                                         {% endfor %}
                                     </div>
