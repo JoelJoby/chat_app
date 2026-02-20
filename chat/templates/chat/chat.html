@@ -26,6 +26,58 @@
             color: #22c55e !important;
         }
 
+        /* ── Scroll-to-bottom FAB ── */
+        #scroll-btn {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            z-index: 999;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #6c63ff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: none;
+            /* hidden by default */
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(108, 99, 255, .45);
+            transition: transform .18s ease, opacity .2s ease;
+        }
+
+        #scroll-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        #scroll-btn.visible {
+            display: flex;
+        }
+
+        /* Unread badge on scroll button */
+        #scroll-btn .unread-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        #scroll-btn .unread-dot.show {
+            display: flex;
+        }
+
         /* ── Read-receipt tick marks ── */
         .read-status {
             display: inline-flex;
@@ -262,6 +314,12 @@
                                 </div>
                             </div>
 
+                            <!-- Scroll-to-bottom floating button -->
+                            <button id="scroll-btn" title="Scroll to latest">
+                                <i class="material-icons" style="font-size:20px">keyboard_arrow_down</i>
+                                <span class="unread-dot" id="unread-badge">0</span>
+                            </button>
+
                             <div class="content" id="content">
                                 <div class="container">
                                     <div class="col-md-12" id="chat-messages">
@@ -359,11 +417,58 @@
         const chatMessages = document.querySelector('#chat-messages');
         const content = document.getElementById('content');
 
-        // ─── Helpers ─────────────────────────────────────────────────────────
-        function scrollToBottom() {
-            content.scrollTop = content.scrollHeight;
+        // ─── Scroll helpers ───────────────────────────────────────────────────
+        const scrollBtn = document.getElementById('scroll-btn');
+        const unreadBadge = document.getElementById('unread-badge');
+        let unreadCount = 0;         // messages received while user is scrolled up
+
+        /** Threshold (px from bottom) within which we consider the user "at bottom" */
+        const AT_BOTTOM_THRESHOLD = 80;
+
+        function isAtBottom() {
+            return content.scrollHeight - content.scrollTop - content.clientHeight <= AT_BOTTOM_THRESHOLD;
         }
 
+        /** Smooth-scroll to the very bottom of the message list. */
+        function scrollToBottom(smooth) {
+            content.scrollTo({
+                top: content.scrollHeight,
+                behavior: smooth === false ? 'auto' : 'smooth'
+            });
+        }
+
+        /** Show / hide the FAB and keep the badge count updated. */
+        function updateScrollBtn() {
+            if (isAtBottom()) {
+                scrollBtn.classList.remove('visible');
+                unreadCount = 0;
+                unreadBadge.classList.remove('show');
+                unreadBadge.textContent = '0';
+            } else {
+                scrollBtn.classList.add('visible');
+            }
+        }
+
+        /** Increment unread badge when a message arrives while scrolled up. */
+        function bumpUnread() {
+            unreadCount++;
+            unreadBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            unreadBadge.classList.add('show');
+        }
+
+        // Hide FAB and jump to bottom when clicked
+        scrollBtn.addEventListener('click', function () {
+            scrollToBottom();
+            unreadCount = 0;
+            unreadBadge.classList.remove('show');
+            unreadBadge.textContent = '0';
+            scrollBtn.classList.remove('visible');
+        });
+
+        // Track scroll position to show/hide FAB
+        content.addEventListener('scroll', updateScrollBtn, { passive: true });
+
+        // ─── Tick helpers ─────────────────────────────────────────────────────
         /** Build the ✓ (sent) tick HTML */
         function sentTickHtml() {
             return `<span class="read-status sent" title="Sent">
@@ -386,19 +491,6 @@
             ids.forEach(function (id) {
                 const bubble = document.querySelector('.message.me[data-msg-id="' + id + '"]');
                 if (!bubble) return;
-                const sentTick = bubble.querySelector('.read-status.sent');
-                if (sentTick) {
-                    sentTick.outerHTML = readTickHtml();
-                }
-            });
-        }
-
-        /**
-         * Upgrade ALL existing ✓ → ✓✓ on messages sent by me.
-         * Called when the other user connects to the chat (they've read everything).
-         */
-        function markAllMyTicksAsRead() {
-            document.querySelectorAll('.message.me').forEach(function (bubble) {
                 const sentTick = bubble.querySelector('.read-status.sent');
                 if (sentTick) {
                     sentTick.outerHTML = readTickHtml();
@@ -495,7 +587,17 @@
                 }
 
                 chatMessages.insertAdjacentHTML('beforeend', messageHtml);
-                scrollToBottom();
+
+                if (senderId === currentUserId) {
+                    // Always scroll to own sent messages (smooth)
+                    scrollToBottom();
+                } else if (isAtBottom()) {
+                    // Receiver is already at bottom – keep them there (smooth)
+                    scrollToBottom();
+                } else {
+                    // Receiver scrolled up reading history – show unread badge
+                    bumpUnread();
+                }
 
             } else if (data.type === 'messages_read') {
                 // ── Read receipt: upgrade ✓ → ✓✓ for specific IDs ────────
@@ -510,8 +612,8 @@
             console.error('Chat socket closed unexpectedly');
         };
 
-        // ─── Sending messages ─────────────────────────────────────────────
-        scrollToBottom();
+        // ─── Initial scroll (instant, no animation flash) ────────────────────
+        scrollToBottom(false);
 
         const messageInput = document.querySelector('#message-input');
 
