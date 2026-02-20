@@ -73,9 +73,7 @@
                                     <div class="list-group" id="contacts" role="tablist">
                                         {% for user in users %}
                                         <a href="{% url 'chat:chat_with_user' user.id %}"
-                                            class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact"
-                                            data-toggle="list"
-                                            onclick="window.location.href='{% url 'chat:chat_with_user' user.id %}'">
+                                            class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact">
                                             <img class="avatar-md"
                                                 src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
                                                 data-toggle="tooltip" data-placement="top" title="{{ user.username }}"
