@@ -616,6 +616,193 @@
             color: #f0c060 !important;
             text-shadow: 0 0 8px rgba(240, 192, 96, .5);
         }
+
+        /* ═══════════════════════════════════════════════════════════
+           RESPONSIVE OVERRIDES  —  mobile-first breakpoints
+           ═══════════════════════════════════════════════════════════ */
+
+        /* ── Sidebar drawer overlay ── */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            z-index: 1200;
+            backdrop-filter: blur(2px);
+        }
+
+        #sidebar-overlay.open {
+            display: block;
+        }
+
+        /* ── Mobile bottom nav bar ── */
+        #mobile-nav {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 56px;
+            background: #fff;
+            border-top: 1px solid #e5e7eb;
+            z-index: 1100;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, .08);
+        }
+
+        html.dark #mobile-nav {
+            background: #1a1a24 !important;
+            border-top-color: #2a2a38 !important;
+        }
+
+        #mobile-nav .btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            gap: 2px;
+            color: #9ca3af;
+            min-width: 48px;
+            padding: 6px 4px;
+        }
+
+        #mobile-nav .btn.active,
+        #mobile-nav .btn:hover {
+            color: #6c63ff !important;
+        }
+
+        html.dark #mobile-nav .btn {
+            color: #a0a0b8 !important;
+        }
+
+        html.dark #mobile-nav .btn.active,
+        html.dark #mobile-nav .btn:hover {
+            color: #6c63ff !important;
+        }
+
+        /* ── Back / menu button shown only on mobile ── */
+        #mobile-back-btn {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: inherit;
+            padding: 4px 8px 4px 0;
+            line-height: 1;
+        }
+
+        /* ── Breakpoint ─ phones & small tablets (≤ 768 px) ── */
+        @media (max-width: 768px) {
+
+            /* Hide the left navigation rail */
+            .navigation {
+                display: none !important;
+            }
+
+            /* Show mobile bottom nav */
+            #mobile-nav {
+                display: flex;
+            }
+
+            /* Sidebar becomes an off-canvas drawer */
+            .sidebar {
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                bottom: 0 !important;
+                width: 80vw !important;
+                max-width: 320px !important;
+                z-index: 1300 !important;
+                transform: translateX(-110%) !important;
+                transition: transform .28s cubic-bezier(.4, 0, .2, 1) !important;
+                overflow-y: auto !important;
+            }
+
+            .sidebar.open {
+                transform: translateX(0) !important;
+            }
+
+            /* Main area fills the whole width */
+            .main {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+
+            /* Push content above the bottom nav bar */
+            .chat {
+                padding-bottom: 56px;
+            }
+
+            /* Make the message input area sit above bottom nav */
+            .bottom {
+                position: sticky;
+                bottom: 56px;
+                z-index: 50;
+            }
+
+            /* Show the back/menu button in the chat header */
+            #mobile-back-btn {
+                display: inline-flex !important;
+                align-items: center;
+            }
+
+            /* Emoji picker: full-width, anchored above the input bar */
+            #emoji-picker {
+                width: calc(100vw - 20px) !important;
+                right: 10px !important;
+                left: 10px !important;
+                bottom: 116px !important;
+            }
+
+            /* Scroll-to-bottom FAB: keep clear of bottom nav */
+            #scroll-btn {
+                bottom: 130px !important;
+                right: 16px !important;
+            }
+
+            /* Bigger touch targets for action buttons */
+            .delete-btn {
+                padding: 6px !important;
+            }
+
+            .btn.send,
+            .btn.emoticons {
+                padding: 8px !important;
+            }
+
+            /* Prevent sidebar contact items from overflowing */
+            .contacts .list-group a.contact {
+                flex-wrap: nowrap;
+            }
+
+            .data h5,
+            .data p {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                max-width: 140px;
+            }
+        }
+
+        /* ── Very small phones (≤ 400 px) ── */
+        @media (max-width: 400px) {
+            .sidebar {
+                width: 92vw !important;
+            }
+
+            #emoji-picker {
+                width: calc(100vw - 8px) !important;
+                right: 4px !important;
+                left: 4px !important;
+            }
+
+            .emoji-grid {
+                grid-template-columns: repeat(7, 1fr) !important;
+            }
+        }
     </style>
 </head>
 
@@ -835,12 +1022,18 @@
             <div class="main">
                 <div class="tab-content" id="nav-tabContent">
                     <div class="babble tab-pane fade active show" id="list-chat" role="tabpanel">
+                        <!-- Sidebar overlay for mobile -->
+                        <div id="sidebar-overlay"></div>
                         <!-- Start of Chat -->
                         <div class="chat" id="chat1">
                             <div class="top">
                                 <div class="container">
                                     <div class="col-md-12">
                                         <div class="inside">
+                                            <!-- Mobile: back/menu button -->
+                                            <button id="mobile-back-btn" title="Contacts" aria-label="Open contacts">
+                                                <i class="material-icons">menu</i>
+                                            </button>
                                             <a href="#"><img class="avatar-md"
                                                     src="{% if other_user.profile_picture %}{{ other_user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
                                                     data-toggle="tooltip" data-placement="top"
@@ -977,6 +1170,26 @@
             </div>
         </div> <!-- Layout -->
     </main>
+
+    <!-- Mobile bottom navigation bar -->
+    <nav id="mobile-nav" aria-label="Mobile navigation">
+        <button class="btn" id="mob-contacts-btn" title="Contacts">
+            <i class="material-icons">people</i>
+            <span>Contacts</span>
+        </button>
+        <button class="btn" id="mob-theme-btn" title="Toggle theme">
+            <i class="material-icons" id="mob-theme-icon">brightness_2</i>
+            <span>Theme</span>
+        </button>
+        <button class="btn" id="mob-settings-btn" title="Settings">
+            <i class="material-icons">settings</i>
+            <span>Settings</span>
+        </button>
+        <button class="btn" id="mob-logout-btn" title="Log out">
+            <i class="material-icons">power_settings_new</i>
+            <span>Log out</span>
+        </button>
+    </nav>
 
     <!-- Bootstrap/Swipe core JavaScript -->
     <script src="{% static 'dist/js/jquery-3.3.1.slim.min.js' %}"></script>
@@ -1627,6 +1840,86 @@
             document.addEventListener('keydown', function (e) {
                 if (e.key === 'Escape') picker.classList.remove('open');
             });
+        })();
+
+        // ─── Mobile sidebar drawer ────────────────────────────────────────────
+        (function () {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const backBtn = document.getElementById('mobile-back-btn');
+            const mobContactsBtn = document.getElementById('mob-contacts-btn');
+            const mobSettingsBtn = document.getElementById('mob-settings-btn');
+            const mobThemeBtn = document.getElementById('mob-theme-btn');
+            const mobLogoutBtn = document.getElementById('mob-logout-btn');
+            const mobThemeIcon = document.getElementById('mob-theme-icon');
+
+            function openSidebar(tab) {
+                // Activate the requested tab inside the sidebar
+                if (tab) {
+                    const tabLink = sidebar.querySelector('a[href="#' + tab + '"]');
+                    if (tabLink) tabLink.click();
+                }
+                sidebar.classList.add('open');
+                overlay.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+
+            if (backBtn) backBtn.addEventListener('click', function () { openSidebar('members'); });
+            if (overlay) overlay.addEventListener('click', closeSidebar);
+
+            if (mobContactsBtn) mobContactsBtn.addEventListener('click', function () { openSidebar('members'); });
+            if (mobSettingsBtn) mobSettingsBtn.addEventListener('click', function () { openSidebar('settings'); });
+
+            // Mirror the main theme toggle for the mobile bottom bar
+            if (mobThemeBtn) {
+                mobThemeBtn.addEventListener('click', function () {
+                    document.getElementById('theme-toggle').click();
+                    const isDark = document.documentElement.classList.contains('dark');
+                    mobThemeIcon.textContent = isDark ? 'brightness_7' : 'brightness_2';
+                });
+            }
+
+            // Sync mob theme icon on load
+            (function syncMobIcon() {
+                const saved = localStorage.getItem('chatTheme') || 'light';
+                if (mobThemeIcon) {
+                    mobThemeIcon.textContent = saved === 'dark' ? 'brightness_7' : 'brightness_2';
+                }
+            })();
+
+            // Mobile logout: submit the existing desktop logout form
+            if (mobLogoutBtn) {
+                mobLogoutBtn.addEventListener('click', function () {
+                    const logoutForm = document.querySelector('.navigation form[action]');
+                    if (logoutForm) { logoutForm.submit(); }
+                    else { window.location.href = '{% url "logout" %}'; }
+                });
+            }
+
+            // Close sidebar when a contact link inside it is clicked
+            if (sidebar) {
+                sidebar.querySelectorAll('a.contact').forEach(function (link) {
+                    link.addEventListener('click', closeSidebar);
+                });
+            }
+
+            // Close drawer on swipe-left gesture
+            var touchStartX = 0;
+            if (sidebar) {
+                sidebar.addEventListener('touchstart', function (e) {
+                    touchStartX = e.changedTouches[0].screenX;
+                }, { passive: true });
+                sidebar.addEventListener('touchend', function (e) {
+                    var dx = e.changedTouches[0].screenX - touchStartX;
+                    if (dx < -60) closeSidebar();
+                }, { passive: true });
+            }
         })();
     </script>
 </body>
