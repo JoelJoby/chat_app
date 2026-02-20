@@ -11,8 +11,13 @@
     <link href="{% static 'dist/css/lib/bootstrap.min.css' %}" type="text/css" rel="stylesheet">
     <!-- Swipe core CSS -->
     <link href="{% static 'dist/css/swipe.min.css' %}" type="text/css" rel="stylesheet">
-    <!-- Online status colour override: green instead of theme blue -->
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Favicon -->
+    <link href="{% static 'dist/img/favicon.png' %}" type="image/png" rel="icon">
+
     <style>
+        /* ── Online status ── */
         .material-icons.online {
             color: #22c55e !important;
         }
@@ -20,11 +25,39 @@
         .status-online {
             color: #22c55e !important;
         }
+
+        /* ── Read-receipt tick marks ── */
+        .read-status {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            font-size: 13px;
+            vertical-align: middle;
+            user-select: none;
+        }
+
+        /* Single grey tick  ✓  = sent */
+        .read-status.sent {
+            color: #9ca3af;
+        }
+
+        /* Double coloured ticks  ✓✓  = read */
+        .read-status.read {
+            color: #22c55e;
+            font-weight: 700;
+        }
+
+        /* Tiny tick SVG-free fallback using Material Icons */
+        .tick-icon {
+            font-size: 16px !important;
+            line-height: 1;
+        }
+
+        .tick-icon.double {
+            margin-left: -8px;
+            /* overlap for double-tick effect */
+        }
     </style>
-    <!-- Favicon -->
-    <link href="{% static 'dist/img/favicon.png' %}" type="image/png" rel="icon">
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
@@ -234,18 +267,33 @@
                                     <div class="col-md-12" id="chat-messages">
                                         {% for message in messages %}
                                         {% if message.sender == request.user %}
-                                        <div class="message me">
+                                        <!-- My sent message -->
+                                        <div class="message me" data-msg-id="{{ message.id }}">
                                             <div class="text-main">
                                                 <div class="text-group me">
                                                     <div class="text me">
                                                         <p>{{ message.message }}</p>
                                                     </div>
                                                 </div>
-                                                <span>{{ message.timestamp|date:"h:i A" }}</span>
+                                                <span>
+                                                    {{ message.timestamp|date:"h:i A" }}
+                                                    <!-- Read receipt ticks -->
+                                                    {% if message.is_read %}
+                                                    <span class="read-status read" title="Read">
+                                                        <i class="material-icons tick-icon">done</i><i
+                                                            class="material-icons tick-icon double">done</i>
+                                                    </span>
+                                                    {% else %}
+                                                    <span class="read-status sent" title="Sent">
+                                                        <i class="material-icons tick-icon">done</i>
+                                                    </span>
+                                                    {% endif %}
+                                                </span>
                                             </div>
                                         </div>
                                         {% else %}
-                                        <div class="message">
+                                        <!-- Received message -->
+                                        <div class="message" data-msg-id="{{ message.id }}">
                                             <img class="avatar-md"
                                                 src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
                                                 data-toggle="tooltip" data-placement="top"
@@ -300,73 +348,175 @@
     <script src="{% static 'dist/js/swipe.min.js' %}"></script>
 
     <script>
+        // ─── Constants from Django context ───────────────────────────────────
         const userId = Number("{{ other_user.id }}");
         const currentUserId = Number("{{ request.user.id }}");
         const otherUserName = "{{ other_user.username }}";
+        const markReadUrl = "{% url 'chat:mark_messages_read' other_user.id %}";
+        const csrfToken = "{{ csrf_token }}";
 
-        const chatSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/chat/' + userId + '/'
-        );
-
+        // ─── DOM refs ────────────────────────────────────────────────────────
         const chatMessages = document.querySelector('#chat-messages');
         const content = document.getElementById('content');
 
+        // ─── Helpers ─────────────────────────────────────────────────────────
         function scrollToBottom() {
             content.scrollTop = content.scrollHeight;
         }
 
-        // Scroll to bottom on load
-        scrollToBottom();
+        /** Build the ✓ (sent) tick HTML */
+        function sentTickHtml() {
+            return `<span class="read-status sent" title="Sent">
+                        <i class="material-icons tick-icon">done</i>
+                    </span>`;
+        }
+
+        /** Build the ✓✓ (read) tick HTML */
+        function readTickHtml() {
+            return `<span class="read-status read" title="Read">
+                        <i class="material-icons tick-icon">done</i><i class="material-icons tick-icon double">done</i>
+                    </span>`;
+        }
+
+        /**
+         * Upgrade ✓ → ✓✓ for a specific set of message IDs in the sender's DOM.
+         * @param {number[]} ids
+         */
+        function markTicksAsRead(ids) {
+            ids.forEach(function (id) {
+                const bubble = document.querySelector('.message.me[data-msg-id="' + id + '"]');
+                if (!bubble) return;
+                const sentTick = bubble.querySelector('.read-status.sent');
+                if (sentTick) {
+                    sentTick.outerHTML = readTickHtml();
+                }
+            });
+        }
+
+        /**
+         * Upgrade ALL existing ✓ → ✓✓ on messages sent by me.
+         * Called when the other user connects to the chat (they've read everything).
+         */
+        function markAllMyTicksAsRead() {
+            document.querySelectorAll('.message.me').forEach(function (bubble) {
+                const sentTick = bubble.querySelector('.read-status.sent');
+                if (sentTick) {
+                    sentTick.outerHTML = readTickHtml();
+                }
+            });
+        }
+
+        // ─── WebSocket ───────────────────────────────────────────────────────
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + userId + '/'
+        );
+
+        chatSocket.onopen = function () {
+            // When WE open the chat, tell the server to mark unread messages
+            // from the other user as read, then broadcast read receipt via WS.
+            sendReadReceipt();
+        };
+
+        /**
+         * Collect IDs of messages sent to us (is_read=False) via the AJAX
+         * endpoint, then fire a WS read_receipt event so the sender updates
+         * their ticks in real-time.
+         */
+        function sendReadReceipt() {
+            fetch(markReadUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.read_ids && data.read_ids.length > 0) {
+                        chatSocket.send(JSON.stringify({
+                            type: 'read_receipt',
+                            read_ids: data.read_ids,
+                        }));
+                    }
+                })
+                .catch(function (err) {
+                    console.warn('Read receipt fetch failed:', err);
+                });
+        }
 
         chatSocket.onmessage = function (e) {
             const data = JSON.parse(e.data);
-            const message = data.message;
-            const senderId = data.sender_id;
 
-            // Format time (simplified for now as "Now", could be improved)
-            const time = "Now";
+            if (data.type === 'chat_message') {
+                // ── New incoming message ──────────────────────────────────
+                const message = data.message;
+                const senderId = data.sender_id;
+                const messageId = data.message_id;
+                const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-            let messageHtml = '';
-            if (senderId === currentUserId) {
-                messageHtml = `
-                <div class="message me">
-                    <div class="text-main">
-                        <div class="text-group me">
-                            <div class="text me">
-                                <p>${message}</p>
+                let messageHtml = '';
+                if (senderId === currentUserId) {
+                    // Message I sent → show with ✓ (sent, not yet read)
+                    messageHtml = `
+                    <div class="message me" data-msg-id="${messageId}">
+                        <div class="text-main">
+                            <div class="text-group me">
+                                <div class="text me">
+                                    <p>${message}</p>
+                                </div>
                             </div>
+                            <span>${time} ${sentTickHtml()}</span>
                         </div>
-                        <span>${time}</span>
-                    </div>
-                </div>`;
-            } else {
-                messageHtml = `
-                <div class="message">
-                    <img class="avatar-md" src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
-                        data-toggle="tooltip" data-placement="top" title="${otherUserName}" alt="avatar">
-                    <div class="text-main">
-                        <div class="text-group">
-                            <div class="text">
-                                <p>${message}</p>
+                    </div>`;
+                } else {
+                    // Message they sent → show normally (no tick on receiver side)
+                    messageHtml = `
+                    <div class="message" data-msg-id="${messageId}">
+                        <img class="avatar-md" src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                            data-toggle="tooltip" data-placement="top" title="${otherUserName}" alt="avatar">
+                        <div class="text-main">
+                            <div class="text-group">
+                                <div class="text">
+                                    <p>${message}</p>
+                                </div>
                             </div>
+                            <span>${time}</span>
                         </div>
-                        <span>${time}</span>
-                    </div>
-                </div>`;
+                    </div>`;
+
+                    // Immediately send a read receipt for this new message
+                    // since we are already in the chat window
+                    if (chatSocket.readyState === WebSocket.OPEN) {
+                        chatSocket.send(JSON.stringify({
+                            type: 'read_receipt',
+                            read_ids: [messageId],
+                        }));
+                    }
+                }
+
+                chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+                scrollToBottom();
+
+            } else if (data.type === 'messages_read') {
+                // ── Read receipt: upgrade ✓ → ✓✓ for specific IDs ────────
+                // Only act if WE are the original sender (reader is the other user)
+                if (data.reader_id !== currentUserId) {
+                    markTicksAsRead(data.read_ids);
+                }
             }
-
-            chatMessages.insertAdjacentHTML('beforeend', messageHtml);
-            scrollToBottom();
         };
 
-        chatSocket.onclose = function (e) {
+        chatSocket.onclose = function () {
             console.error('Chat socket closed unexpectedly');
         };
+
+        // ─── Sending messages ─────────────────────────────────────────────
+        scrollToBottom();
 
         const messageInput = document.querySelector('#message-input');
 
         messageInput.onkeyup = function (e) {
-            if (e.keyCode === 13 && !e.shiftKey) {  // Enter key
+            if (e.keyCode === 13 && !e.shiftKey) {
                 e.preventDefault();
                 document.querySelector('.btn.send').click();
             }
@@ -375,11 +525,8 @@
         document.querySelector('#chat-form').onsubmit = function (e) {
             e.preventDefault();
             const message = messageInput.value.trim();
-
             if (message !== '') {
-                chatSocket.send(JSON.stringify({
-                    'message': message
-                }));
+                chatSocket.send(JSON.stringify({ 'message': message }));
                 messageInput.value = '';
             }
         };

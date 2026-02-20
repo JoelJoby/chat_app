@@ -6,6 +6,7 @@ from .models import Message
 
 User = get_user_model()
 
+
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
@@ -46,7 +47,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if hasattr(self, 'room_group_name'):
-            # Leave message group
             await self.channel_layer.group_discard(
                 self.room_group_name,
                 self.channel_name
@@ -56,37 +56,69 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if self.user.is_authenticated:
             await self.set_user_offline(self.user)
 
-    # Receive message from WebSocket
+    # ──────────────────────────────────────────────
+    # Receive message from WebSocket (client → server)
+    # ──────────────────────────────────────────────
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
-        message = text_data_json['message']
+        msg_type = text_data_json.get('type', 'message')
 
-        # Save message to database
-        await self.save_message(message)
+        if msg_type == 'read_receipt':
+            # Receiver tells us they read messages up to now
+            read_ids = text_data_json.get('read_ids', [])
+            if read_ids:
+                await self.mark_messages_read(read_ids)
+                # Broadcast so the sender's window can update ✓ → ✓✓
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'messages_read',
+                        'read_ids': read_ids,
+                        'reader_id': self.user.id,
+                    }
+                )
+        else:
+            # Normal chat message
+            message_text = text_data_json['message']
 
-        # Send message to room group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message,
-                'sender': self.user.username,
-                'sender_id': self.user.id,
-            }
-        )
+            # Save message to database, get its ID back
+            message_id = await self.save_message(message_text)
 
-    # Receive message from room group
+            # Broadcast to room group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message_text,
+                    'sender': self.user.username,
+                    'sender_id': self.user.id,
+                    'message_id': message_id,
+                }
+            )
+
+    # ──────────────────────────────────────────────
+    # Group event handlers (server → client WebSocket)
+    # ──────────────────────────────────────────────
+
     async def chat_message(self, event):
-        message = event['message']
-        sender = event['sender']
-        sender_id = event.get('sender_id')
-
-        # Send message to WebSocket
+        """Deliver a new chat message to this WebSocket connection."""
         await self.send(text_data=json.dumps({
-            'message': message,
-            'sender': sender,
-            'sender_id': sender_id,
+            'type': 'chat_message',
+            'message': event['message'],
+            'sender': event['sender'],
+            'sender_id': event['sender_id'],
+            'message_id': event['message_id'],
         }))
+
+    async def messages_read(self, event):
+        """Tell the sender's client that specific messages were read."""
+        await self.send(text_data=json.dumps({
+            'type': 'messages_read',
+            'read_ids': event['read_ids'],
+            'reader_id': event['reader_id'],
+        }))
+
+
 
     # ──────────────────────────────────────────────
     # Database helpers
@@ -98,12 +130,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async
     def save_message(self, message):
+        """Save a message and return its primary-key ID."""
         other_user = User.objects.get(id=self.other_user_id)
-        Message.objects.create(
+        msg = Message.objects.create(
             sender=self.user,
             receiver=other_user,
             message=message
         )
+        return msg.id
+
+    @database_sync_to_async
+    def mark_messages_read(self, message_ids):
+        """Mark a list of message IDs as read."""
+        Message.objects.filter(
+            id__in=message_ids,
+            receiver=self.user,   # Only the receiver can mark as read
+            is_read=False
+        ).update(is_read=True)
 
     @database_sync_to_async
     def set_user_online(self, user):
