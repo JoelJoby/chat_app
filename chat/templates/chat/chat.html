@@ -332,6 +332,75 @@
             background: #3a2d6e;
         }
 
+        /* ── Typing indicator ── */
+        #typing-indicator {
+            display: none;
+            /* hidden until other user starts typing */
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0 10px 4px;
+        }
+
+        #typing-indicator.visible {
+            display: flex;
+        }
+
+        .typing-bubble {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #f0f0f5;
+            border-radius: 18px 18px 18px 4px;
+            padding: 10px 14px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+        }
+
+        html.dark .typing-bubble {
+            background: #1e1e2e !important;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #6c63ff;
+            animation: typingBounce 1.2s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: .4;
+            }
+
+            30% {
+                transform: translateY(-6px);
+                opacity: 1;
+            }
+        }
+
+        .typing-label {
+            font-size: 12px;
+            color: #9ca3af;
+            font-style: italic;
+            white-space: nowrap;
+        }
+
+        html.dark .typing-label {
+            color: #666680 !important;
+        }
+
         /* ── Dark theme ── */
         /* Smooth transition for all colour-bearing elements */
         body,
@@ -867,6 +936,20 @@
                                         </div>
                                         {% endif %}
                                         {% endfor %}
+
+                                        <!-- Typing indicator -->
+                                        <div id="typing-indicator">
+                                            <img class="avatar-md"
+                                                src="{% if other_user.profile_picture %}{{ other_user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
+                                                alt="{{ other_user.username }}">
+                                            <div class="typing-bubble">
+                                                <span class="typing-dot"></span>
+                                                <span class="typing-dot"></span>
+                                                <span class="typing-dot"></span>
+                                            </div>
+                                            <span class="typing-label">{{ other_user.username }} is typing…</span>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -1128,6 +1211,18 @@
             } else if (data.type === 'message_deleted') {
                 // ── Remove the deleted message bubble from both screens ──
                 removeBubble(data.message_id);
+
+            } else if (data.type === 'user_typing') {
+                // ── Other user started typing ─────────────────────────────
+                if (data.sender_id !== currentUserId) {
+                    showTypingIndicator();
+                }
+
+            } else if (data.type === 'user_stop_typing') {
+                // ── Other user stopped typing ─────────────────────────────
+                if (data.sender_id !== currentUserId) {
+                    hideTypingIndicator();
+                }
             }
         };
 
@@ -1242,8 +1337,71 @@
             if (message !== '') {
                 chatSocket.send(JSON.stringify({ 'message': message }));
                 messageInput.value = '';
+                // Stop typing signal when message is actually sent
+                sendStopTyping();
             }
         };
+
+        // ─── Typing indicator logic ───────────────────────────────────────────
+        const typingIndicatorEl = document.getElementById('typing-indicator');
+        let typingTimer = null;          // debounce handle
+        let isTyping = false;            // our own typing state
+        const TYPING_DEBOUNCE_MS = 1500; // silence after 1.5 s = stop
+        const TYPING_AUTO_HIDE_MS = 5000;// safety: hide after 5 s even without stop signal
+        let typingAutoHideTimer = null;
+
+        /** Show the indicator and scroll to it if the user is at the bottom. */
+        function showTypingIndicator() {
+            typingIndicatorEl.classList.add('visible');
+            if (isAtBottom()) scrollToBottom();
+            // Auto-hide safety valve (catches dropped stop signals)
+            clearTimeout(typingAutoHideTimer);
+            typingAutoHideTimer = setTimeout(hideTypingIndicator, TYPING_AUTO_HIDE_MS);
+        }
+
+        /** Hide the indicator and cancel the auto-hide timer. */
+        function hideTypingIndicator() {
+            typingIndicatorEl.classList.remove('visible');
+            clearTimeout(typingAutoHideTimer);
+        }
+
+        /** Tell the server we are actively typing (debounced). */
+        function sendTyping() {
+            if (!isTyping) {
+                isTyping = true;
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({ type: 'typing' }));
+                }
+            }
+            // Restart the stop-typing timer on every keystroke
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(sendStopTyping, TYPING_DEBOUNCE_MS);
+        }
+
+        /** Tell the server we stopped typing. */
+        function sendStopTyping() {
+            if (isTyping) {
+                isTyping = false;
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({ type: 'stop_typing' }));
+                }
+            }
+            clearTimeout(typingTimer);
+        }
+
+        // Fire on every input event (handles paste, autocomplete, etc.)
+        messageInput.addEventListener('input', function () {
+            if (messageInput.value.trim() === '') {
+                sendStopTyping();   // field is empty → definitely not typing
+            } else {
+                sendTyping();
+            }
+        });
+
+        // Also stop when the window loses focus
+        window.addEventListener('blur', sendStopTyping);
+        // And when the socket closes cleanly
+        chatSocket.addEventListener('close', sendStopTyping);
 
         // ─── Dark / Light theme toggle ────────────────────────────────────────
         (function () {
