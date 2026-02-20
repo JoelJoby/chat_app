@@ -4,7 +4,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Pied Piper - The Simplest Chat Platform</title>
+    <title>Chat with {{ other_user.username }} - Pied Piper</title>
     <meta name="description" content="#">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Bootstrap core CSS -->
@@ -45,6 +45,7 @@
                 </div>
             </div>
             <!-- End of Navigation -->
+
             <!-- Start of Sidebar -->
             <div class="sidebar" id="sidebar">
                 <div class="container">
@@ -73,7 +74,7 @@
                                     <div class="list-group" id="contacts" role="tablist">
                                         {% for user in users %}
                                         <a href="{% url 'chat:chat_with_user' user.id %}"
-                                            class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact"
+                                            class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact {% if user.id == other_user.id %}active{% endif %}"
                                             data-toggle="list"
                                             onclick="window.location.href='{% url 'chat:chat_with_user' user.id %}'">
                                             <img class="avatar-md"
@@ -111,18 +112,9 @@
                                     <button class="btn create" data-toggle="modal" data-target="#startnewchat"><i
                                             class="material-icons">create</i></button>
                                 </div>
-                                <div class="list-group sort">
-                                    <button class="btn filterDiscussionsBtn active show" data-toggle="list"
-                                        data-filter="all">All</button>
-                                    <button class="btn filterDiscussionsBtn" data-toggle="list"
-                                        data-filter="read">Read</button>
-                                    <button class="btn filterDiscussionsBtn" data-toggle="list"
-                                        data-filter="unread">Unread</button>
-                                </div>
                                 <div class="discussions">
                                     <h1>Discussions</h1>
                                     <div class="list-group" id="chats" role="tablist">
-                                        <!-- Placeholders for discussions -->
                                         <p class="text-center mt-4">Start a chat from Contacts!</p>
                                     </div>
                                 </div>
@@ -130,18 +122,9 @@
                             <!-- End of Discussions -->
                             <!-- Start of Notifications -->
                             <div id="notifications" class="tab-pane fade">
-                                <div class="search">
-                                    <form class="form-inline position-relative">
-                                        <input type="search" class="form-control" id="notice"
-                                            placeholder="Filter notifications...">
-                                        <button type="button" class="btn btn-link loop"><i
-                                                class="material-icons filter-list">filter_list</i></button>
-                                    </form>
-                                </div>
                                 <div class="notifications">
                                     <h1>Notifications</h1>
                                     <div class="list-group" id="alerts" role="tablist">
-                                        <!-- Placeholders -->
                                         <p class="text-center mt-4">No notifications.</p>
                                     </div>
                                 </div>
@@ -158,7 +141,6 @@
                                     </div>
                                     <div class="categories" id="accordionSettings">
                                         <h1>Settings</h1>
-                                        <!-- Start of Logout -->
                                         <div class="category">
                                             <form action="{% url 'logout' %}" method="post" style="width: 100%;">
                                                 {% csrf_token %}
@@ -173,7 +155,6 @@
                                                 </button>
                                             </form>
                                         </div>
-                                        <!-- End of Logout -->
                                     </div>
                                 </div>
                             </div>
@@ -186,20 +167,105 @@
 
             <div class="main">
                 <div class="tab-content" id="nav-tabContent">
-                    <div class="babble tab-pane fade active show" id="list-chat" role="tabpanel"
-                        aria-labelledby="list-chat-list">
+                    <div class="babble tab-pane fade active show" id="list-chat" role="tabpanel">
                         <!-- Start of Chat -->
                         <div class="chat" id="chat1">
                             <div class="top">
-                                <!-- Top bar placeholder if needed, usually shows active chat info -->
-                            </div>
-                            <div class="content empty">
                                 <div class="container">
                                     <div class="col-md-12">
-                                        <div class="no-messages">
-                                            <i class="material-icons md-48">forum</i>
-                                            <p>Select a contact to start chatting.</p>
+                                        <div class="inside">
+                                            <a href="#"><img class="avatar-md"
+                                                    src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                                                    data-toggle="tooltip" data-placement="top" title="Keith"
+                                                    alt="avatar"></a>
+                                            <div class="status">
+                                                <i class="material-icons online">fiber_manual_record</i>
+                                            </div>
+                                            <div class="data">
+                                                <h5><a href="#">{{ other_user.username }}</a></h5>
+                                                <span>Active now</span>
+                                            </div>
+                                            <button class="btn connect d-md-block d-none"><i
+                                                    class="material-icons md-30">phone_in_talk</i></button>
+                                            <button class="btn connect d-md-block d-none"><i
+                                                    class="material-icons md-30">videocam</i></button>
+                                            <button class="btn d-md-block d-none"><i
+                                                    class="material-icons md-30">info</i></button>
+                                            <div class="dropdown">
+                                                <button class="btn" data-toggle="dropdown" aria-haspopup="true"
+                                                    aria-expanded="false"><i
+                                                        class="material-icons md-30">more_vert</i></button>
+                                                <div class="dropdown-menu dropdown-menu-right">
+                                                    <a class="dropdown-item connect" href="#"><i
+                                                            class="material-icons">phone_in_talk</i>Voice Call</a>
+                                                    <a class="dropdown-item connect" href="#"><i
+                                                            class="material-icons">videocam</i>Video Call</a>
+                                                    <hr>
+                                                    <a class="dropdown-item" href="#"><i
+                                                            class="material-icons">clear</i>Clear History</a>
+                                                    <a class="dropdown-item" href="#"><i
+                                                            class="material-icons">block</i>Block Contact</a>
+                                                    <a class="dropdown-item" href="#"><i
+                                                            class="material-icons">delete</i>Delete Contact</a>
+                                                </div>
+                                            </div>
                                         </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="content" id="content">
+                                <div class="container">
+                                    <div class="col-md-12" id="chat-messages">
+                                        {% for message in messages %}
+                                        {% if message.sender == request.user %}
+                                        <div class="message me">
+                                            <div class="text-main">
+                                                <div class="text-group me">
+                                                    <div class="text me">
+                                                        <p>{{ message.message }}</p>
+                                                    </div>
+                                                </div>
+                                                <span>{{ message.timestamp|date:"h:i A" }}</span>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="message">
+                                            <img class="avatar-md"
+                                                src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                                                data-toggle="tooltip" data-placement="top"
+                                                title="{{ other_user.username }}" alt="avatar">
+                                            <div class="text-main">
+                                                <div class="text-group">
+                                                    <div class="text">
+                                                        <p>{{ message.message }}</p>
+                                                    </div>
+                                                </div>
+                                                <span>{{ message.timestamp|date:"h:i A" }}</span>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="container">
+                                <div class="col-md-12">
+                                    <div class="bottom">
+                                        <form class="position-relative w-100" id="chat-form">
+                                            <textarea class="form-control" placeholder="Start typing for reply..."
+                                                rows="1" id="message-input"></textarea>
+                                            <button class="btn emoticons"><i
+                                                    class="material-icons">insert_emoticon</i></button>
+                                            <button type="submit" class="btn send"><i
+                                                    class="material-icons">send</i></button>
+                                        </form>
+                                        <label>
+                                            <input type="file">
+                                            <span class="btn attach d-sm-block d-none"><i
+                                                    class="material-icons">attach_file</i></span>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -210,12 +276,99 @@
             </div>
         </div> <!-- Layout -->
     </main>
+
     <!-- Bootstrap/Swipe core JavaScript -->
     <script src="{% static 'dist/js/jquery-3.3.1.slim.min.js' %}"></script>
     <script>window.jQuery || document.write('<script src="{% static "dist/js/vendor/jquery-slim.min.js" %}"><\/script>')</script>
     <script src="{% static 'dist/js/vendor/popper.min.js' %}"></script>
     <script src="{% static 'dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'dist/js/swipe.min.js' %}"></script>
+
+    <script>
+        const userId = {{ other_user.id }};
+        const currentUserId = {{ request.user.id }};
+        const otherUserName = "{{ other_user.username }}";
+
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/' + userId + '/'
+        );
+
+        const chatMessages = document.querySelector('#chat-messages');
+        const content = document.getElementById('content');
+
+        function scrollToBottom() {
+            content.scrollTop = content.scrollHeight;
+        }
+
+        // Scroll to bottom on load
+        scrollToBottom();
+
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const message = data.message;
+            const senderId = data.sender_id;
+
+            // Format time (simplified for now as "Now", could be improved)
+            const time = "Now";
+
+            let messageHtml = '';
+            if (senderId === currentUserId) {
+                messageHtml = `
+                <div class="message me">
+                    <div class="text-main">
+                        <div class="text-group me">
+                            <div class="text me">
+                                <p>${message}</p>
+                            </div>
+                        </div>
+                        <span>${time}</span>
+                    </div>
+                </div>`;
+            } else {
+                messageHtml = `
+                <div class="message">
+                    <img class="avatar-md" src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                        data-toggle="tooltip" data-placement="top" title="${otherUserName}" alt="avatar">
+                    <div class="text-main">
+                        <div class="text-group">
+                            <div class="text">
+                                <p>${message}</p>
+                            </div>
+                        </div>
+                        <span>${time}</span>
+                    </div>
+                </div>`;
+            }
+
+            chatMessages.insertAdjacentHTML('beforeend', messageHtml);
+            scrollToBottom();
+        };
+
+        chatSocket.onclose = function (e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        const messageInput = document.querySelector('#message-input');
+
+        messageInput.onkeyup = function (e) {
+            if (e.keyCode === 13 && !e.shiftKey) {  // Enter key
+                e.preventDefault();
+                document.querySelector('.btn.send').click();
+            }
+        };
+
+        document.querySelector('#chat-form').onsubmit = function (e) {
+            e.preventDefault();
+            const message = messageInput.value.trim();
+
+            if (message !== '') {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                messageInput.value = '';
+            }
+        };
+    </script>
 </body>
 
 </html>
