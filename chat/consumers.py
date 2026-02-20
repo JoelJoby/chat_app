@@ -22,6 +22,9 @@ Security layers applied
                       entries to prevent abuse.
 9. DB ownership     : mark_messages_read() filters by receiver=self.user
                       so a user can never mark another user's messages read.
+10. Delete auth     : delete_message_db() verifies sender=self.user before
+                      deleting — the DB layer enforces ownership even if
+                      the WS payload is crafted.
 """
 
 import json
@@ -141,6 +144,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # ── Route by type ─────────────────────────────────────────────────────
         if msg_type == 'read_receipt':
             await self._handle_read_receipt(payload)
+        elif msg_type == 'delete_message':
+            await self._handle_delete_message(payload)
         else:
             await self._handle_chat_message(payload)
 
@@ -214,6 +219,40 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
+    async def _handle_delete_message(self, payload):
+        """
+        Delete a message by ID.
+        Security: the DB helper enforces sender=self.user, so even a
+        crafted payload cannot delete another user's message.
+        """
+        try:
+            message_id = int(payload.get('message_id', 0))
+        except (TypeError, ValueError):
+            return
+
+        if message_id <= 0:
+            return
+
+        # Returns True if deleted, False if not found / not owned
+        deleted = await self.delete_message_db(message_id)
+
+        if deleted:
+            # Broadcast removal to both participants in the room
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'message_deleted',
+                    'message_id': message_id,
+                    'deleted_by': self.user.id,
+                }
+            )
+        else:
+            # Silently log — someone tried to delete a msg they don't own
+            logger.warning(
+                'WS delete rejected: user=%s tried to delete msg=%s',
+                self.user.username, message_id
+            )
+
     # ──────────────────────────────────────────────────────────────────────────
     # Group event handlers (channel layer → this WebSocket)
     # ──────────────────────────────────────────────────────────────────────────
@@ -234,6 +273,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'type': 'messages_read',
             'read_ids': event['read_ids'],
             'reader_id': event['reader_id'],
+        }))
+
+    async def message_deleted(self, event):
+        """Tell both participants to remove the deleted message bubble."""
+        await self.send(text_data=json.dumps({
+            'type': 'message_deleted',
+            'message_id': event['message_id'],
+            'deleted_by': event['deleted_by'],
         }))
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -267,6 +314,19 @@ class ChatConsumer(AsyncWebsocketConsumer):
             receiver=self.user,
             is_read=False,
         ).update(is_read=True)
+
+    @database_sync_to_async
+    def delete_message_db(self, message_id):
+        """
+        Delete a message only if the current user is the sender.
+        Returns True on success, False if the message was not found
+        or the user does not own it.
+        """
+        deleted_count, _ = Message.objects.filter(
+            id=message_id,
+            sender=self.user,   # ← ownership enforced at DB level
+        ).delete()
+        return deleted_count > 0
 
     @database_sync_to_async
     def set_user_online(self, user):

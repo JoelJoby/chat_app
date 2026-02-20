@@ -109,6 +109,67 @@
             margin-left: -8px;
             /* overlap for double-tick effect */
         }
+
+        /* ── Delete button on own messages ── */
+        .msg-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        /* wrapper for right-aligned ("me") messages */
+        .message.me .msg-wrapper {
+            flex-direction: row-reverse;
+        }
+
+        .delete-btn {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            cursor: pointer;
+            border-radius: 50%;
+            color: #9ca3af;
+            opacity: 0;
+            /* hidden by default */
+            transition: opacity .15s ease, color .15s ease, background .15s ease;
+            line-height: 1;
+        }
+
+        .delete-btn .material-icons {
+            font-size: 16px !important;
+        }
+
+        .delete-btn:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, .1);
+        }
+
+        /* reveal on hover of the whole message row */
+        .message.me:hover .delete-btn {
+            opacity: 1;
+        }
+
+        /* fade-out animation when message is being removed */
+        @keyframes fadeOutShrink {
+            from {
+                opacity: 1;
+                transform: scaleY(1);
+                max-height: 200px;
+            }
+
+            to {
+                opacity: 0;
+                transform: scaleY(0);
+                max-height: 0;
+            }
+        }
+
+        .msg-deleting {
+            overflow: hidden;
+            animation: fadeOutShrink .3s ease forwards;
+        }
     </style>
 </head>
 
@@ -328,10 +389,17 @@
                                         <!-- My sent message -->
                                         <div class="message me" data-msg-id="{{ message.id }}">
                                             <div class="text-main">
-                                                <div class="text-group me">
-                                                    <div class="text me">
-                                                        <p>{{ message.message }}</p>
+                                                <div class="msg-wrapper">
+                                                    <div class="text-group me">
+                                                        <div class="text me">
+                                                            <p>{{ message.message }}</p>
+                                                        </div>
                                                     </div>
+                                                    <!-- Delete button (only visible on hover) -->
+                                                    <button class="delete-btn" data-delete-id="{{ message.id }}"
+                                                        title="Delete message">
+                                                        <i class="material-icons">delete_outline</i>
+                                                    </button>
                                                 </div>
                                                 <span>
                                                     {{ message.timestamp|date:"h:i A" }}
@@ -416,6 +484,7 @@
         // ─── DOM refs ────────────────────────────────────────────────────────
         const chatMessages = document.querySelector('#chat-messages');
         const content = document.getElementById('content');
+        const messageInput = document.querySelector('#message-input');
 
         // ─── Scroll helpers ───────────────────────────────────────────────────
         const scrollBtn = document.getElementById('scroll-btn');
@@ -552,10 +621,15 @@
                     messageHtml = `
                     <div class="message me" data-msg-id="${messageId}">
                         <div class="text-main">
-                            <div class="text-group me">
-                                <div class="text me">
-                                    <p>${message}</p>
+                            <div class="msg-wrapper">
+                                <div class="text-group me">
+                                    <div class="text me">
+                                        <p>${message}</p>
+                                    </div>
                                 </div>
+                                <button class="delete-btn" data-delete-id="${messageId}" title="Delete message">
+                                    <i class="material-icons">delete_outline</i>
+                                </button>
                             </div>
                             <span>${time} ${sentTickHtml()}</span>
                         </div>
@@ -605,6 +679,10 @@
                 if (data.reader_id !== currentUserId) {
                     markTicksAsRead(data.read_ids);
                 }
+
+            } else if (data.type === 'message_deleted') {
+                // ── Remove the deleted message bubble from both screens ──
+                removeBubble(data.message_id);
             }
         };
 
@@ -612,10 +690,72 @@
             console.error('Chat socket closed unexpectedly');
         };
 
-        // ─── Initial scroll (instant, no animation flash) ────────────────────
+        // ─── Initial scroll (instant, no animation flash) ─────────────────────
         scrollToBottom(false);
 
-        const messageInput = document.querySelector('#message-input');
+        // ─── Delete message ───────────────────────────────────────────────────
+        /**
+         * Called when the sender clicks the delete button on one of their own messages.
+         * 1. Sends an AJAX POST to the server (first permission check).
+         * 2. If the server confirms deletion, sends a WS 'delete_message' event
+         *    so both participants' screens remove the bubble in real time.
+         */
+        // ─── Event delegation for delete buttons ─────────────────────────────
+        chatMessages.addEventListener('click', function (e) {
+            const btn = e.target.closest('.delete-btn[data-delete-id]');
+            if (btn) deleteMessage(Number(btn.dataset.deleteId));
+        });
+
+        function deleteMessage(messageId) {
+            if (!confirm('Delete this message?')) return;
+
+            fetch(`/chat/messages/${messageId}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+            })
+                .then(function (r) {
+                    if (r.status === 403) {
+                        alert('You can only delete your own messages.');
+                        throw new Error('forbidden');
+                    }
+                    if (!r.ok) throw new Error('delete failed');
+                    return r.json();
+                })
+                .then(function (data) {
+                    if (data.deleted) {
+                        // Notify both participants via WS to remove the bubble
+                        if (chatSocket.readyState === WebSocket.OPEN) {
+                            chatSocket.send(JSON.stringify({
+                                type: 'delete_message',
+                                message_id: messageId,
+                            }));
+                        } else {
+                            // WS unavailable — remove locally only
+                            removeBubble(messageId);
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    if (err.message !== 'forbidden') {
+                        console.error('Delete error:', err);
+                    }
+                });
+        }
+
+        /**
+         * Animate and remove a message bubble from the DOM.
+         * @param {number} messageId
+         */
+        function removeBubble(messageId) {
+            const bubble = document.querySelector('[data-msg-id="' + messageId + '"]');
+            if (!bubble) return;
+            bubble.classList.add('msg-deleting');
+            bubble.addEventListener('animationend', function () {
+                bubble.remove();
+            }, { once: true });
+        }
+
+        // ─── Send on Enter ────────────────────────────────────────────────────
 
         messageInput.onkeyup = function (e) {
             if (e.keyCode === 13 && !e.shiftKey) {

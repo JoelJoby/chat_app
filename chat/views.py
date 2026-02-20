@@ -55,6 +55,33 @@ def mark_messages_read(request, user_id):
 
 
 @login_required(login_url='login')
+@require_POST
+def delete_message(request, message_id):
+    """
+    AJAX endpoint: permanently delete a single message.
+
+    Permission rules:
+      - User must be authenticated (guaranteed by @login_required).
+      - Only the SENDER of the message can delete it.
+      - 403 is returned for any other user who tries to delete.
+
+    On success, returns {deleted: true, message_id: <id>} so the JS
+    can remove the bubble from both participants' screens via WebSocket.
+    """
+    message = get_object_or_404(Message, id=message_id)
+
+    # ── Permission check: only the original sender may delete ──────────────────
+    if message.sender != request.user:
+        return JsonResponse(
+            {'error': 'You do not have permission to delete this message.'},
+            status=403
+        )
+
+    message.delete()
+    return JsonResponse({'deleted': True, 'message_id': message_id})
+
+
+@login_required(login_url='login')
 def room(request, room_name):
     return render(request, "chat/room.html", {
         "room_name": room_name
