@@ -9,14 +9,14 @@ User = get_user_model()
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         self.user = self.scope['user']
-        
+
         # Check if user is authenticated
         if not self.user.is_authenticated:
             await self.close()
             return
 
         self.other_user_id = self.scope['url_route']['kwargs']['id']
-        
+
         # Verify other user exists
         is_valid_user = await self.check_user_exists(self.other_user_id)
         if not is_valid_user:
@@ -39,6 +39,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+        # Mark user as online when WebSocket connects
+        await self.set_user_online(self.user)
+
         await self.accept()
 
     async def disconnect(self, close_code):
@@ -49,11 +52,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.channel_name
             )
 
+        # Mark user as offline and record last_seen when WebSocket disconnects
+        if self.user.is_authenticated:
+            await self.set_user_offline(self.user)
+
     # Receive message from WebSocket
     async def receive(self, text_data):
         text_data_json = json.loads(text_data)
         message = text_data_json['message']
-        
+
         # Save message to database
         await self.save_message(message)
 
@@ -64,7 +71,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'type': 'chat_message',
                 'message': message,
                 'sender': self.user.username,
-                'sender_id': self.user.id
+                'sender_id': self.user.id,
             }
         )
 
@@ -78,8 +85,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message': message,
             'sender': sender,
-            'sender_id': sender_id
+            'sender_id': sender_id,
         }))
+
+    # ──────────────────────────────────────────────
+    # Database helpers
+    # ──────────────────────────────────────────────
 
     @database_sync_to_async
     def check_user_exists(self, user_id):
@@ -92,4 +103,22 @@ class ChatConsumer(AsyncWebsocketConsumer):
             sender=self.user,
             receiver=other_user,
             message=message
+        )
+
+    @database_sync_to_async
+    def set_user_online(self, user):
+        """Mark the user as online and refresh last_seen."""
+        from django.utils import timezone
+        User.objects.filter(pk=user.pk).update(
+            is_online=True,
+            last_seen=timezone.now()
+        )
+
+    @database_sync_to_async
+    def set_user_offline(self, user):
+        """Mark the user as offline and record the time they were last seen."""
+        from django.utils import timezone
+        User.objects.filter(pk=user.pk).update(
+            is_online=False,
+            last_seen=timezone.now()
         )

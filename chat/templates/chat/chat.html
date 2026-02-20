@@ -177,11 +177,18 @@
                                                     data-toggle="tooltip" data-placement="top" title="Keith"
                                                     alt="avatar"></a>
                                             <div class="status">
-                                                <i class="material-icons online">fiber_manual_record</i>
+                                                <i
+                                                    class="material-icons {% if other_user.is_online %}online{% else %}offline{% endif %}">fiber_manual_record</i>
                                             </div>
                                             <div class="data">
                                                 <h5><a href="#">{{ other_user.username }}</a></h5>
-                                                <span>Active now</span>
+                                                {% if other_user.is_online %}
+                                                <span class="status-online">Active now</span>
+                                                {% else %}
+                                                <span class="status-offline">
+                                                    Last seen {{ other_user.last_seen|timesince }} ago
+                                                </span>
+                                                {% endif %}
                                             </div>
                                             <button class="btn connect d-md-block d-none"><i
                                                     class="material-icons md-30">phone_in_talk</i></button>
