@@ -171,6 +171,123 @@
             animation: fadeOutShrink .3s ease forwards;
         }
 
+        /* ── Emoji Picker ── */
+        #emoji-picker {
+            position: absolute;
+            bottom: 60px;
+            right: 70px;
+            width: 310px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .15);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: emojiIn .15s ease;
+        }
+
+        @keyframes emojiIn {
+            from {
+                opacity: 0;
+                transform: scale(.95) translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        #emoji-picker.open {
+            display: flex;
+        }
+
+        .emoji-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            padding: 4px 6px 0;
+            gap: 2px;
+        }
+
+        .emoji-tab {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 18px;
+            padding: 6px 4px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            opacity: .55;
+            transition: opacity .15s, background .15s;
+        }
+
+        .emoji-tab:hover {
+            opacity: 1;
+            background: #f0f0f5;
+        }
+
+        .emoji-tab.active {
+            opacity: 1;
+            background: #fff;
+            border-bottom: 2px solid #6c63ff;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            padding: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .emoji-cell {
+            font-size: 22px;
+            text-align: center;
+            padding: 5px 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            line-height: 1;
+            transition: background .1s, transform .1s;
+            user-select: none;
+        }
+
+        .emoji-cell:hover {
+            background: #f0eeff;
+            transform: scale(1.2);
+        }
+
+        /* Dark mode picker */
+        html.dark #emoji-picker {
+            background: #1e1e2e !important;
+            border-color: #2a2a3e !important;
+        }
+
+        html.dark .emoji-tabs {
+            background: #16161f !important;
+            border-bottom-color: #2a2a3e !important;
+        }
+
+        html.dark .emoji-tab {
+            color: #e2e2e6;
+        }
+
+        html.dark .emoji-tab:hover {
+            background: #2a2a3e !important;
+        }
+
+        html.dark .emoji-tab.active {
+            background: #1e1e2e !important;
+            border-bottom-color: #6c63ff;
+        }
+
+        html.dark .emoji-cell:hover {
+            background: #3a2d6e;
+        }
+
         /* ── Dark theme ── */
         /* Smooth transition for all colour-bearing elements */
         body,
@@ -630,7 +747,8 @@
                                                     aria-expanded="false"><i
                                                         class="material-icons md-30">more_vert</i></button>
                                                 <div class="dropdown-menu dropdown-menu-right">
-                                                    <a class="dropdown-item" href="#"><i class="material-icons">
+                                                    <a class="dropdown-item" href="#" id="clear-history-btn"><i
+                                                            class="material-icons">
                                                             clear</i>Clear History
                                                     </a>
                                                 </div>
@@ -710,11 +828,13 @@
                                         <form class="position-relative w-100" id="chat-form">
                                             <textarea class="form-control" placeholder="Start typing for reply..."
                                                 rows="1" id="message-input"></textarea>
-                                            <button class="btn emoticons"><i
+                                            <button type="button" class="btn emoticons" id="emoji-btn"><i
                                                     class="material-icons">insert_emoticon</i></button>
                                             <button type="submit" class="btn send"><i
                                                     class="material-icons">send</i></button>
                                         </form>
+                                        <!-- Emoji Picker Panel -->
+                                        <div id="emoji-picker" role="dialog" aria-label="Emoji picker"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1015,6 +1135,33 @@
             }, { once: true });
         }
 
+        // ─── Clear History ────────────────────────────────────────────────────
+        document.getElementById('clear-history-btn').addEventListener('click', function (e) {
+            e.preventDefault();
+            if (!confirm('Clear all messages in this conversation? This cannot be undone.')) return;
+
+            fetch(`/chat/chat/${userId}/clear/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+            })
+                .then(function (r) {
+                    if (!r.ok) throw new Error('clear failed');
+                    return r.json();
+                })
+                .then(function (data) {
+                    if (data.cleared) {
+                        // Animate-out every message bubble
+                        document.querySelectorAll('#chat-messages [data-msg-id]').forEach(function (bubble) {
+                            bubble.classList.add('msg-deleting');
+                            bubble.addEventListener('animationend', function () {
+                                bubble.remove();
+                            }, { once: true });
+                        });
+                    }
+                })
+                .catch(function (err) { console.error('Clear history error:', err); });
+        });
+
         // ─── Send on Enter ────────────────────────────────────────────────────
 
         messageInput.onkeyup = function (e) {
@@ -1142,6 +1289,121 @@
                         });
                 });
             }
+        })();
+
+        // ─── Emoji Picker ─────────────────────────────────────────────────────
+        (function () {
+            const CATEGORIES = [
+                {
+                    icon: '😀', label: 'Smileys',
+                    emojis: ['😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊',
+                        '😋', '😎', '😍', '🥰', '😘', '😗', '😙', '😚', '🙂', '🤗',
+                        '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥',
+                        '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😛', '😜',
+                        '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '😷',
+                        '🤒', '🤕', '🤢', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '😬',
+                        '😱', '😨', '😰', '😢', '😭', '😤', '😠', '😡', '🤬', '😈']
+                },
+                {
+                    icon: '👋', label: 'Gestures',
+                    emojis: ['👍', '👎', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙',
+                        '👈', '👉', '👆', '🖕', '👇', '☝️', '👋', '🤚', '🖐️', '✋',
+                        '🖖', '🤝', '👏', '🙌', '🤲', '🙏', '✍️', '💪', '🦾', '🦿',
+                        '👊', '✊', '🤛', '🤜', '🫱', '🫲', '🫳', '🫴', '🫵', '🤙']
+                },
+                {
+                    icon: '👶', label: 'People',
+                    emojis: ['👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👩', '🧓',
+                        '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁', '🙋', '🧏', '🙇',
+                        '🤦', '🤷', '💆', '💇', '🚶', '🧍', '🧎', '🏃', '💃', '🕺',
+                        '👫', '👬', '👭', '💑', '👨‍👩‍👦', '🥷', '🧑‍🦰', '🧑‍🦱', '🧑‍🦳', '🧑‍🦲']
+                },
+                {
+                    icon: '🐶', label: 'Animals',
+                    emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯',
+                        '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐔', '🦆',
+                        '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🦋', '🐛',
+                        '🐢', '🐍', '🦎', '🦖', '🐙', '🦑', '🦐', '🐡', '🐬', '🐳']
+                },
+                {
+                    icon: '🍕', label: 'Food',
+                    emojis: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧂', '🥓', '🥚', '🍳', '🧇',
+                        '🥞', '🧈', '🍞', '🥐', '🥨', '🧀', '🥗', '🥙', '🌮', '🌯',
+                        '🫔', '🥪', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🍤', '🍙',
+                        '☕', '🧋', '🍵', '🍺', '🍻', '🥂', '🍷', '🍸', '🍹', '🧃']
+                },
+                {
+                    icon: '⚽', label: 'Activities',
+                    emojis: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱',
+                        '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '🎣', '🤿', '🎽', '🎿',
+                        '🛷', '🏋️', '🤼', '🤺', '🤸', '⛹️', '🤾', '🏇', '🧘', '🏄']
+                },
+                {
+                    icon: '❤️', label: 'Symbols',
+                    emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+                        '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
+                        '✝️', '☯️', '🔥', '💥', '✨', '⭐', '🌟', '💫', '⚡', '🌈',
+                        '🎉', '🎊', '🎈', '🎁', '🏆', '🥇', '🎯', '🎮', '🎲', '🃏']
+                },
+            ];
+
+            const picker = document.getElementById('emoji-picker');
+            const emojiBtn = document.getElementById('emoji-btn');
+            const input = document.getElementById('message-input');
+
+            // Build picker HTML once
+            let tabsHtml = '<div class="emoji-tabs">';
+            let gridsHtml = '';
+            CATEGORIES.forEach(function (cat, i) {
+                const active = i === 0 ? ' active' : '';
+                tabsHtml += `<button class="emoji-tab${active}" data-cat="${i}" title="${cat.label}">${cat.icon}</button>`;
+                gridsHtml += `<div class="emoji-grid" data-grid="${i}"${i !== 0 ? ' style="display:none"' : ''}>` +
+                    cat.emojis.map(function (em) {
+                        return `<span class="emoji-cell" title="${em}">${em}</span>`;
+                    }).join('') + '</div>';
+            });
+            tabsHtml += '</div>';
+            picker.innerHTML = tabsHtml + gridsHtml;
+
+            // Tab switching
+            picker.querySelectorAll('.emoji-tab').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    picker.querySelectorAll('.emoji-tab').forEach(function (t) { t.classList.remove('active'); });
+                    picker.querySelectorAll('.emoji-grid').forEach(function (g) { g.style.display = 'none'; });
+                    tab.classList.add('active');
+                    picker.querySelector('[data-grid="' + tab.dataset.cat + '"]').style.display = 'grid';
+                });
+            });
+
+            // Insert emoji at cursor
+            picker.addEventListener('click', function (e) {
+                const cell = e.target.closest('.emoji-cell');
+                if (!cell) return;
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                const val = input.value;
+                input.value = val.slice(0, start) + cell.textContent + val.slice(end);
+                // Restore cursor after emoji
+                const pos = start + cell.textContent.length;
+                input.setSelectionRange(pos, pos);
+                input.focus();
+            });
+
+            // Toggle picker
+            emojiBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                picker.classList.toggle('open');
+            });
+
+            // Close on outside click or Escape
+            document.addEventListener('click', function (e) {
+                if (!picker.contains(e.target) && e.target !== emojiBtn) {
+                    picker.classList.remove('open');
+                }
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') picker.classList.remove('open');
+            });
         })();
     </script>
 </body>

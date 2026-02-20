@@ -82,6 +82,22 @@ def delete_message(request, message_id):
 
 
 @login_required(login_url='login')
+@require_POST
+def clear_history(request, user_id):
+    """
+    AJAX endpoint: delete ALL messages between request.user and user_id.
+    Both directions (sent and received) are removed.
+    Only participants of the conversation can clear it.
+    """
+    other_user = get_object_or_404(User, id=user_id)
+    Message.objects.filter(
+        Q(sender=request.user, receiver=other_user) |
+        Q(sender=other_user,   receiver=request.user)
+    ).delete()
+    return JsonResponse({'cleared': True})
+
+
+@login_required(login_url='login')
 def room(request, room_name):
     return render(request, "chat/room.html", {
         "room_name": room_name
