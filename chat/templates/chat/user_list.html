@@ -26,6 +26,50 @@
             color: #22c55e !important;
         }
 
+        /* ── Unread message badge ── */
+        .unread-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ef4444;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            padding: 0 5px;
+            line-height: 1;
+            margin-left: auto;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, .45);
+            animation: badgePop .2s ease;
+        }
+
+        .unread-badge.hidden {
+            display: none;
+        }
+
+        @keyframes badgePop {
+            from {
+                transform: scale(0.6);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* keep person-add aligned in the same flex row */
+        .contact .person-add {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         /* ── Dark theme ── */
         body,
         .navigation,
@@ -238,6 +282,12 @@
                                             </div>
                                             <div class="person-add">
                                                 <i class="material-icons">person</i>
+                                                <span
+                                                    class="unread-badge{% if not user.unread_count %} hidden{% endif %}"
+                                                    id="unread-ul-{{ user.id }}"
+                                                    title="{{ user.unread_count }} unread message{{ user.unread_count|pluralize }}">
+                                                    {{ user.unread_count }}
+                                                </span>
                                             </div>
                                         </a>
                                         {% empty %}

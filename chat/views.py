@@ -1,17 +1,35 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Message
 
 User = get_user_model()
 
+
+def _annotate_unread(users, current_user):
+    """
+    Attach an `unread_count` attribute to every User object in `users`,
+    representing how many unread messages that user has sent to current_user.
+    """
+    # Map: sender_id -> unread_count
+    counts = dict(
+        Message.objects
+        .filter(receiver=current_user, is_read=False)
+        .values('sender_id')
+        .annotate(n=Count('id'))
+        .values_list('sender_id', 'n')
+    )
+    for user in users:
+        user.unread_count = counts.get(user.id, 0)
+    return users
+
 @login_required(login_url='login')
 def chat_with_user(request, user_id):
     other_user = get_object_or_404(User, id=user_id)
-    users = User.objects.exclude(id=request.user.id)
+    users = list(User.objects.exclude(id=request.user.id))
 
     # Mark all unread messages sent by other_user to this user as read
     Message.objects.filter(
@@ -19,6 +37,10 @@ def chat_with_user(request, user_id):
         receiver=request.user,
         is_read=False
     ).update(is_read=True)
+
+    # Annotate sidebar users with unread counts
+    # (after marking current chat as read, so that user's badge shows 0)
+    _annotate_unread(users, request.user)
 
     # Get message history
     messages = Message.objects.filter(
@@ -29,7 +51,7 @@ def chat_with_user(request, user_id):
     return render(request, 'chat/chat.html', {
         'users': users,
         'other_user': other_user,
-        'messages': messages
+        'messages': messages,
     })
 
 
@@ -110,7 +132,8 @@ def landing_page(request):
 
 @login_required(login_url='login')
 def user_list(request):
-    users = User.objects.exclude(id=request.user.id)
+    users = list(User.objects.exclude(id=request.user.id))
+    _annotate_unread(users, request.user)
     return render(request, 'chat/user_list.html', {'users': users})
 
 

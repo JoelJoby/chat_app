@@ -78,6 +78,50 @@
             display: flex;
         }
 
+        /* ── Sidebar contact unread badge ── */
+        .unread-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ef4444;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            padding: 0 5px;
+            line-height: 1;
+            margin-left: auto;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, .45);
+            animation: badgePop .18s ease;
+        }
+
+        .unread-badge.hidden {
+            display: none !important;
+        }
+
+        @keyframes badgePop {
+            from {
+                transform: scale(0.6);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* keep person-add aligned in the same flex row */
+        .contact .person-add {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         /* ── Read-receipt tick marks ── */
         .read-status {
             display: inline-flex;
@@ -579,6 +623,11 @@
                                             </div>
                                             <div class="person-add">
                                                 <i class="material-icons">person</i>
+                                                <span
+                                                    class="unread-badge{% if not user.unread_count %} hidden{% endif %}"
+                                                    id="unread-sb-{{ user.id }}" title="{{ user.unread_count }} unread">
+                                                    {{ user.unread_count }}
+                                                </span>
                                             </div>
                                         </a>
                                         {% empty %}
@@ -947,6 +996,20 @@
             });
         }
 
+        // ─── Sidebar unread badge helpers ─────────────────────────────────────
+        /**
+         * Zero-out and hide the sidebar unread badge for a given user ID.
+         * Called when that user reads our messages (messages_read event).
+         * @param {number} uid
+         */
+        function clearSidebarBadge(uid) {
+            const badge = document.getElementById('unread-sb-' + uid);
+            if (badge) {
+                badge.textContent = '0';
+                badge.classList.add('hidden');
+            }
+        }
+
         // ─── WebSocket ───────────────────────────────────────────────────────
         const chatSocket = new WebSocket(
             'ws://' + window.location.host + '/ws/chat/' + userId + '/'
@@ -1058,6 +1121,8 @@
                 // Only act if WE are the original sender (reader is the other user)
                 if (data.reader_id !== currentUserId) {
                     markTicksAsRead(data.read_ids);
+                    // Clear the sidebar badge for the user who just read
+                    clearSidebarBadge(data.reader_id);
                 }
 
             } else if (data.type === 'message_deleted') {
