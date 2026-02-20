@@ -283,8 +283,8 @@
     <script src="{% static 'dist/js/swipe.min.js' %}"></script>
 
     <script>
-        const userId = {{ other_user.id }};
-        const currentUserId = {{ request.user.id }};
+        const userId = Number("{{ other_user.id }}");
+        const currentUserId = Number("{{ request.user.id }}");
         const otherUserName = "{{ other_user.username }}";
 
         const chatSocket = new WebSocket(
