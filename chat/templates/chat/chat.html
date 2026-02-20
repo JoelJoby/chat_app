@@ -397,8 +397,11 @@
                 <div class="container">
                     <div class="inside">
                         <div class="nav nav-tab menu">
-                            <button class="btn"><img class="avatar-xl"
-                                    src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}" alt="avatar"></button>
+                            <button class="btn" id="nav-avatar-btn">
+                                <img class="avatar-xl" id="nav-avatar-img"
+                                    src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
+                                    alt="avatar">
+                            </button>
                             <a href="#members" data-toggle="tab" class="active"><i
                                     class="material-icons">account_circle</i></a>
                             <!-- <a href="#discussions" data-toggle="tab"><i
@@ -449,7 +452,7 @@
                                         <a href="{% url 'chat:chat_with_user' user.id %}"
                                             class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact {% if user.id == other_user.id %}active{% endif %}">
                                             <img class="avatar-md"
-                                                src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                                                src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
                                                 data-toggle="tooltip" data-placement="top" title="{{ user.username }}"
                                                 alt="avatar">
                                             <div class="status">
@@ -505,13 +508,74 @@
                             <div class="tab-pane fade" id="settings">
                                 <div class="settings">
                                     <div class="profile">
-                                        <img class="avatar-xl" src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}"
+                                        <img class="avatar-xl" id="settings-avatar-img"
+                                            src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
                                             alt="avatar">
-                                        <h1><a href="#">{{ request.user.username }}</a></h1>
-                                        <span>{{ request.user.email }}</span>
+                                        <h1><a href="#" id="settings-username">{{ request.user.username }}</a></h1>
+                                        <span id="settings-email">{{ request.user.email }}</span>
                                     </div>
                                     <div class="categories" id="accordionSettings">
                                         <h1>Settings</h1>
+
+                                        <!-- ── My Account ── -->
+                                        <div class="category" style="padding: 16px 0;">
+                                            <div class="title"
+                                                style="cursor:default; padding: 0; display:flex; align-items:center; gap:10px;">
+                                                <i class="material-icons md-30"
+                                                    style="color:#6c63ff;">manage_accounts</i>
+                                                <div class="data">
+                                                    <h5 style="margin:0;">My Account</h5>
+                                                </div>
+                                            </div>
+
+                                            <form id="profile-form" style="margin-top:14px;"
+                                                enctype="multipart/form-data">
+                                                {% csrf_token %}
+
+                                                <!-- Avatar upload -->
+                                                <div
+                                                    style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:14px;">
+                                                    <img id="avatar-preview"
+                                                        src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
+                                                        alt="preview"
+                                                        style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #6c63ff; cursor:pointer;"
+                                                        title="Click to change photo">
+                                                    <input type="file" id="pic-input" name="profile_picture"
+                                                        accept="image/*" style="display:none;">
+                                                    <label for="pic-input"
+                                                        style="font-size:12px; color:#6c63ff; cursor:pointer; margin:0;">Change
+                                                        photo</label>
+                                                </div>
+
+                                                <!-- Username -->
+                                                <div style="margin-bottom:10px;">
+                                                    <label
+                                                        style="font-size:12px; color:#9ca3af; display:block; margin-bottom:4px;">Username</label>
+                                                    <input type="text" name="username" class="form-control"
+                                                        value="{{ request.user.username }}" placeholder="Username"
+                                                        style="border-radius:8px; font-size:14px;">
+                                                </div>
+
+                                                <!-- Email -->
+                                                <div style="margin-bottom:14px;">
+                                                    <label
+                                                        style="font-size:12px; color:#9ca3af; display:block; margin-bottom:4px;">Email</label>
+                                                    <input type="email" name="email" class="form-control"
+                                                        value="{{ request.user.email }}" placeholder="Email"
+                                                        style="border-radius:8px; font-size:14px;">
+                                                </div>
+
+                                                <div id="profile-msg"
+                                                    style="font-size:13px; margin-bottom:8px; min-height:18px;"></div>
+
+                                                <button type="submit" class="btn btn-primary btn-block"
+                                                    style="background:#6c63ff; border:none; border-radius:8px; width:100%; padding:10px; font-weight:600;">
+                                                    Save changes
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <!-- ── Log out ── -->
                                         <div class="category">
                                             <form action="{% url 'logout' %}" method="post" style="width: 100%;">
                                                 {% csrf_token %}
@@ -546,9 +610,9 @@
                                     <div class="col-md-12">
                                         <div class="inside">
                                             <a href="#"><img class="avatar-md"
-                                                    src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
-                                                    data-toggle="tooltip" data-placement="top" title="Keith"
-                                                    alt="avatar"></a>
+                                                    src="{% if other_user.profile_picture %}{{ other_user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
+                                                    data-toggle="tooltip" data-placement="top"
+                                                    title="{{ other_user.username }}" alt="avatar"></a>
                                             <div class="status">
                                                 <i
                                                     class="material-icons {% if other_user.is_online %}online{% else %}offline{% endif %}">fiber_manual_record</i>
@@ -563,28 +627,15 @@
                                                 </span>
                                                 {% endif %}
                                             </div>
-                                            <button class="btn connect d-md-block d-none"><i
-                                                    class="material-icons md-30">phone_in_talk</i></button>
-                                            <button class="btn connect d-md-block d-none"><i
-                                                    class="material-icons md-30">videocam</i></button>
-                                            <button class="btn d-md-block d-none"><i
-                                                    class="material-icons md-30">info</i></button>
+
                                             <div class="dropdown">
                                                 <button class="btn" data-toggle="dropdown" aria-haspopup="true"
                                                     aria-expanded="false"><i
                                                         class="material-icons md-30">more_vert</i></button>
                                                 <div class="dropdown-menu dropdown-menu-right">
-                                                    <a class="dropdown-item connect" href="#"><i
-                                                            class="material-icons">phone_in_talk</i>Voice Call</a>
-                                                    <a class="dropdown-item connect" href="#"><i
-                                                            class="material-icons">videocam</i>Video Call</a>
-                                                    <hr>
-                                                    <a class="dropdown-item" href="#"><i
-                                                            class="material-icons">clear</i>Clear History</a>
-                                                    <a class="dropdown-item" href="#"><i
-                                                            class="material-icons">block</i>Block Contact</a>
-                                                    <a class="dropdown-item" href="#"><i
-                                                            class="material-icons">delete</i>Delete Contact</a>
+                                                    <a class="dropdown-item" href="#"><i class="material-icons">
+                                                            clear</i>Clear History
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
@@ -667,11 +718,6 @@
                                             <button type="submit" class="btn send"><i
                                                     class="material-icons">send</i></button>
                                         </form>
-                                        <label>
-                                            <input type="file">
-                                            <span class="btn attach d-sm-block d-none"><i
-                                                    class="material-icons">attach_file</i></span>
-                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -1019,6 +1065,86 @@
                 applyTheme(next);
                 localStorage.setItem('chatTheme', next);
             });
+        })();
+
+        // ─── My Account \u2500 profile form ─────────────────────────────────────────
+        (function () {
+            const picInput = document.getElementById('pic-input');
+            const avatarPreview = document.getElementById('avatar-preview');
+            const profileForm = document.getElementById('profile-form');
+            const profileMsg = document.getElementById('profile-msg');
+
+            // Clicking the preview image also opens the file picker
+            if (avatarPreview) {
+                avatarPreview.addEventListener('click', function () {
+                    picInput.click();
+                });
+            }
+
+            // Live-preview the chosen image before saving
+            if (picInput) {
+                picInput.addEventListener('change', function () {
+                    const file = picInput.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        avatarPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            /** Update every avatar image on the page with newUrl */
+            function updateAllAvatars(newUrl) {
+                if (!newUrl) return;
+                ['nav-avatar-img', 'settings-avatar-img', 'avatar-preview'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el) el.src = newUrl + '?t=' + Date.now(); // cache-bust
+                });
+            }
+
+            if (profileForm) {
+                profileForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    profileMsg.textContent = '';
+                    profileMsg.style.color = '';
+
+                    const formData = new FormData(profileForm);
+
+                    fetch('/auth/profile/update/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken },
+                        body: formData,
+                    })
+                        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                const errs = res.data.errors || {};
+                                profileMsg.style.color = '#ef4444';
+                                profileMsg.textContent = Object.values(errs).join(' ');
+                                return;
+                            }
+                            const d = res.data;
+                            // Update username & email displayed in the settings profile header
+                            const uEl = document.getElementById('settings-username');
+                            const eEl = document.getElementById('settings-email');
+                            if (uEl) uEl.textContent = d.username;
+                            if (eEl) eEl.textContent = d.email;
+
+                            // Update avatars everywhere
+                            if (d.picture_url) updateAllAvatars(d.picture_url);
+
+                            profileMsg.style.color = '#22c55e';
+                            profileMsg.textContent = '\u2713 Profile updated!';
+                            setTimeout(function () { profileMsg.textContent = ''; }, 3000);
+                        })
+                        .catch(function (err) {
+                            console.error('Profile update error:', err);
+                            profileMsg.style.color = '#ef4444';
+                            profileMsg.textContent = 'Something went wrong. Please try again.';
+                        });
+                });
+            }
         })();
     </script>
 </body>
