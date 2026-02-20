@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="user-list-container">
+    <h2>Available Users</h2>
+    <div class="user-grid">
+        {% for user in users %}
+        <a href="{% url 'chat:start_chat' user.id %}" class="user-card">
+            <div class="user-info">
+                <span class="username">{{ user.username }}</span>
+                {% if user.is_online %}
+                <span class="status-dot online" title="Online"></span>
+                {% else %}
+                <span class="status-dot offline" title="Offline"></span>
+                {% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <p>No other users found.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    .user-list-container {
+        padding: 2rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .user-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .user-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-decoration: none;
+        color: white;
+        transition: transform 0.2s, background 0.2s;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .user-card:hover {
+        transform: translateY(-5px);
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-dot.online {
+        background-color: #4ade80;
+        /* Green */
+        box-shadow: 0 0 10px #4ade80;
+    }
+
+    .status-dot.offline {
+        background-color: #94a3b8;
+        /* Grey */
+    }
+</style>
+{% endblock %}
