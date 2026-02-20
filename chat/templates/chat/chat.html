@@ -26,6 +26,58 @@
             color: #22c55e !important;
         }
 
+        /* ── Scroll-to-bottom FAB ── */
+        #scroll-btn {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            z-index: 999;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #6c63ff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            display: none;
+            /* hidden by default */
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(108, 99, 255, .45);
+            transition: transform .18s ease, opacity .2s ease;
+        }
+
+        #scroll-btn:hover {
+            transform: translateY(-3px);
+        }
+
+        #scroll-btn.visible {
+            display: flex;
+        }
+
+        /* Unread badge on scroll button */
+        #scroll-btn .unread-dot {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        #scroll-btn .unread-dot.show {
+            display: flex;
+        }
+
         /* ── Read-receipt tick marks ── */
         .read-status {
             display: inline-flex;
@@ -57,6 +109,283 @@
             margin-left: -8px;
             /* overlap for double-tick effect */
         }
+
+        /* ── Delete button on own messages ── */
+        .msg-wrapper {
+            position: relative;
+            display: inline-flex;
+            align-items: flex-end;
+            gap: 4px;
+        }
+
+        /* wrapper for right-aligned ("me") messages */
+        .message.me .msg-wrapper {
+            flex-direction: row-reverse;
+        }
+
+        .delete-btn {
+            flex-shrink: 0;
+            background: none;
+            border: none;
+            padding: 2px 4px;
+            cursor: pointer;
+            border-radius: 50%;
+            color: #9ca3af;
+            opacity: 0;
+            /* hidden by default */
+            transition: opacity .15s ease, color .15s ease, background .15s ease;
+            line-height: 1;
+        }
+
+        .delete-btn .material-icons {
+            font-size: 16px !important;
+        }
+
+        .delete-btn:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, .1);
+        }
+
+        /* reveal on hover of the whole message row */
+        .message.me:hover .delete-btn {
+            opacity: 1;
+        }
+
+        /* fade-out animation when message is being removed */
+        @keyframes fadeOutShrink {
+            from {
+                opacity: 1;
+                transform: scaleY(1);
+                max-height: 200px;
+            }
+
+            to {
+                opacity: 0;
+                transform: scaleY(0);
+                max-height: 0;
+            }
+        }
+
+        .msg-deleting {
+            overflow: hidden;
+            animation: fadeOutShrink .3s ease forwards;
+        }
+
+        /* ── Dark theme ── */
+        /* Smooth transition for all colour-bearing elements */
+        body,
+        .navigation,
+        .sidebar,
+        .main,
+        .chat,
+        .top,
+        .content,
+        .bottom,
+        .text,
+        .contacts,
+        .settings,
+        .profile,
+        .category,
+        .title,
+        .form-control,
+        .list-group-item,
+        a,
+        .data h5,
+        .data p,
+        span,
+        .dropdown-menu,
+        .dropdown-item,
+        input,
+        textarea,
+        .search {
+            transition: background-color .25s ease, color .25s ease,
+                border-color .25s ease, box-shadow .25s ease;
+        }
+
+        html.dark body {
+            background-color: #0f0f13 !important;
+            color: #e2e2e6 !important;
+        }
+
+        /* Navigation rail */
+        html.dark .navigation {
+            background-color: #1a1a24 !important;
+            border-right: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .navigation .btn,
+        html.dark .navigation a {
+            color: #a0a0b8 !important;
+        }
+
+        html.dark .navigation a:hover,
+        html.dark .navigation .btn:hover {
+            color: #e2e2e6 !important;
+        }
+
+        /* Sidebar */
+        html.dark .sidebar {
+            background-color: #16161f !important;
+            border-right: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .sidebar h1 {
+            color: #b0b0cc !important;
+        }
+
+        html.dark .search .form-control {
+            background-color: #222230 !important;
+            border-color: #33334a !important;
+            color: #e2e2e6 !important;
+        }
+
+        html.dark .search .form-control::placeholder {
+            color: #666680 !important;
+        }
+
+        /* Contact list items */
+        html.dark .contacts .list-group a.contact {
+            background-color: transparent !important;
+            border-bottom: 1px solid #22223a !important;
+        }
+
+        html.dark .contacts .list-group a.contact:hover,
+        html.dark .contacts .list-group a.contact.active {
+            background-color: #222230 !important;
+        }
+
+        html.dark .data h5 {
+            color: #e2e2e6 !important;
+        }
+
+        html.dark .data p {
+            color: #84849e !important;
+        }
+
+        /* Settings panel */
+        html.dark .settings {
+            background-color: #16161f !important;
+        }
+
+        html.dark .settings h1 {
+            color: #b0b0cc !important;
+        }
+
+        html.dark .category {
+            border-bottom: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .title {
+            color: #e2e2e6 !important;
+        }
+
+        html.dark .title p {
+            color: #84849e !important;
+        }
+
+        /* Chat area — main */
+        html.dark .main {
+            background-color: #0f0f13 !important;
+        }
+
+        /* Chat header (top bar) */
+        html.dark .chat .top {
+            background-color: #16161f !important;
+            border-bottom: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .chat .top .data h5 a {
+            color: #e2e2e6 !important;
+        }
+
+        html.dark .chat .top .data span {
+            color: #84849e !important;
+        }
+
+        html.dark .chat .top .btn {
+            color: #a0a0b8 !important;
+        }
+
+        html.dark .chat .top .btn:hover {
+            color: #e2e2e6 !important;
+        }
+
+        /* Messages area */
+        html.dark .content {
+            background-color: #0f0f13 !important;
+        }
+
+        /* Received message bubbles */
+        html.dark .message .text {
+            background-color: #1e1e2e !important;
+            color: #e2e2e6 !important;
+            border-color: #2a2a3e !important;
+        }
+
+        html.dark .message .text p {
+            color: #e2e2e6 !important;
+        }
+
+        /* Sent message bubbles */
+        html.dark .message.me .text.me {
+            background-color: #3a2d6e !important;
+            color: #f0eeff !important;
+        }
+
+        html.dark .message.me .text.me p {
+            color: #f0eeff !important;
+        }
+
+        /* Timestamp spans */
+        html.dark .message span {
+            color: #666680 !important;
+        }
+
+        /* Bottom input bar */
+        html.dark .bottom {
+            background-color: #16161f !important;
+            border-top: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .bottom .form-control,
+        html.dark #message-input {
+            background-color: #222230 !important;
+            border-color: #33334a !important;
+            color: #e2e2e6 !important;
+        }
+
+        html.dark #message-input::placeholder {
+            color: #666680 !important;
+        }
+
+        html.dark .bottom .btn {
+            color: #a0a0b8 !important;
+        }
+
+        html.dark .bottom .btn:hover {
+            color: #6c63ff !important;
+        }
+
+        /* Dropdown menus */
+        html.dark .dropdown-menu {
+            background-color: #1e1e2e !important;
+            border-color: #2a2a3e !important;
+        }
+
+        html.dark .dropdown-item {
+            color: #c0c0d8 !important;
+        }
+
+        html.dark .dropdown-item:hover {
+            background-color: #2a2a3e !important;
+            color: #fff !important;
+        }
+
+        /* Mode button glow in dark mode */
+        html.dark .btn.mode .material-icons {
+            color: #f0c060 !important;
+            text-shadow: 0 0 8px rgba(240, 192, 96, .5);
+        }
     </style>
 </head>
 
@@ -68,19 +397,20 @@
                 <div class="container">
                     <div class="inside">
                         <div class="nav nav-tab menu">
-                            <button class="btn"><img class="avatar-xl"
-                                    src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}" alt="avatar"></button>
+                            <button class="btn" id="nav-avatar-btn">
+                                <img class="avatar-xl" id="nav-avatar-img"
+                                    src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
+                                    alt="avatar">
+                            </button>
                             <a href="#members" data-toggle="tab" class="active"><i
                                     class="material-icons">account_circle</i></a>
-                            <a href="#discussions" data-toggle="tab"><i
-                                    class="material-icons">chat_bubble_outline</i></a>
-                            <a href="#notifications" data-toggle="tab" class="f-grow1"><i
-                                    class="material-icons">notifications_none</i></a>
-                            <button class="btn mode"><i class="material-icons">brightness_2</i></button>
+                            <!-- discussions & notifications hidden (same as chat page) -->
+                            <button class="btn mode f-grow1" id="theme-toggle" title="Toggle dark mode"><i
+                                    class="material-icons" id="theme-icon">brightness_2</i></button>
                             <a href="#settings" data-toggle="tab"><i class="material-icons">settings</i></a>
                             <form action="{% url 'logout' %}" method="post" style="display: inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn power"><i
+                                <button type="submit" class="btn power" title="Log out"><i
                                         class="material-icons">power_settings_new</i></button>
                             </form>
                         </div>
@@ -119,7 +449,7 @@
                                         <a href="{% url 'chat:chat_with_user' user.id %}"
                                             class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact {% if user.id == other_user.id %}active{% endif %}">
                                             <img class="avatar-md"
-                                                src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                                                src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
                                                 data-toggle="tooltip" data-placement="top" title="{{ user.username }}"
                                                 alt="avatar">
                                             <div class="status">
@@ -175,13 +505,74 @@
                             <div class="tab-pane fade" id="settings">
                                 <div class="settings">
                                     <div class="profile">
-                                        <img class="avatar-xl" src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}"
+                                        <img class="avatar-xl" id="settings-avatar-img"
+                                            src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
                                             alt="avatar">
-                                        <h1><a href="#">{{ request.user.username }}</a></h1>
-                                        <span>{{ request.user.email }}</span>
+                                        <h1><a href="#" id="settings-username">{{ request.user.username }}</a></h1>
+                                        <span id="settings-email">{{ request.user.email }}</span>
                                     </div>
                                     <div class="categories" id="accordionSettings">
                                         <h1>Settings</h1>
+
+                                        <!-- ── My Account ── -->
+                                        <div class="category" style="padding: 16px 0;">
+                                            <div class="title"
+                                                style="cursor:default; padding: 0; display:flex; align-items:center; gap:10px;">
+                                                <i class="material-icons md-30"
+                                                    style="color:#6c63ff;">manage_accounts</i>
+                                                <div class="data">
+                                                    <h5 style="margin:0;">My Account</h5>
+                                                </div>
+                                            </div>
+
+                                            <form id="profile-form" style="margin-top:14px;"
+                                                enctype="multipart/form-data">
+                                                {% csrf_token %}
+
+                                                <!-- Avatar upload -->
+                                                <div
+                                                    style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:14px;">
+                                                    <img id="avatar-preview"
+                                                        src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
+                                                        alt="preview"
+                                                        style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #6c63ff; cursor:pointer;"
+                                                        title="Click to change photo">
+                                                    <input type="file" id="pic-input" name="profile_picture"
+                                                        accept="image/*" style="display:none;">
+                                                    <label for="pic-input"
+                                                        style="font-size:12px; color:#6c63ff; cursor:pointer; margin:0;">Change
+                                                        photo</label>
+                                                </div>
+
+                                                <!-- Username -->
+                                                <div style="margin-bottom:10px;">
+                                                    <label
+                                                        style="font-size:12px; color:#9ca3af; display:block; margin-bottom:4px;">Username</label>
+                                                    <input type="text" name="username" class="form-control"
+                                                        value="{{ request.user.username }}" placeholder="Username"
+                                                        style="border-radius:8px; font-size:14px;">
+                                                </div>
+
+                                                <!-- Email -->
+                                                <div style="margin-bottom:14px;">
+                                                    <label
+                                                        style="font-size:12px; color:#9ca3af; display:block; margin-bottom:4px;">Email</label>
+                                                    <input type="email" name="email" class="form-control"
+                                                        value="{{ request.user.email }}" placeholder="Email"
+                                                        style="border-radius:8px; font-size:14px;">
+                                                </div>
+
+                                                <div id="profile-msg"
+                                                    style="font-size:13px; margin-bottom:8px; min-height:18px;"></div>
+
+                                                <button type="submit" class="btn btn-primary btn-block"
+                                                    style="background:#6c63ff; border:none; border-radius:8px; width:100%; padding:10px; font-weight:600;">
+                                                    Save changes
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <!-- ── Log out ── -->
                                         <div class="category">
                                             <form action="{% url 'logout' %}" method="post" style="width: 100%;">
                                                 {% csrf_token %}
@@ -216,9 +607,9 @@
                                     <div class="col-md-12">
                                         <div class="inside">
                                             <a href="#"><img class="avatar-md"
-                                                    src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
-                                                    data-toggle="tooltip" data-placement="top" title="Keith"
-                                                    alt="avatar"></a>
+                                                    src="{% if other_user.profile_picture %}{{ other_user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
+                                                    data-toggle="tooltip" data-placement="top"
+                                                    title="{{ other_user.username }}" alt="avatar"></a>
                                             <div class="status">
                                                 <i
                                                     class="material-icons {% if other_user.is_online %}online{% else %}offline{% endif %}">fiber_manual_record</i>
@@ -233,34 +624,27 @@
                                                 </span>
                                                 {% endif %}
                                             </div>
-                                            <button class="btn connect d-md-block d-none"><i
-                                                    class="material-icons md-30">phone_in_talk</i></button>
-                                            <button class="btn connect d-md-block d-none"><i
-                                                    class="material-icons md-30">videocam</i></button>
-                                            <button class="btn d-md-block d-none"><i
-                                                    class="material-icons md-30">info</i></button>
+
                                             <div class="dropdown">
                                                 <button class="btn" data-toggle="dropdown" aria-haspopup="true"
                                                     aria-expanded="false"><i
                                                         class="material-icons md-30">more_vert</i></button>
                                                 <div class="dropdown-menu dropdown-menu-right">
-                                                    <a class="dropdown-item connect" href="#"><i
-                                                            class="material-icons">phone_in_talk</i>Voice Call</a>
-                                                    <a class="dropdown-item connect" href="#"><i
-                                                            class="material-icons">videocam</i>Video Call</a>
-                                                    <hr>
-                                                    <a class="dropdown-item" href="#"><i
-                                                            class="material-icons">clear</i>Clear History</a>
-                                                    <a class="dropdown-item" href="#"><i
-                                                            class="material-icons">block</i>Block Contact</a>
-                                                    <a class="dropdown-item" href="#"><i
-                                                            class="material-icons">delete</i>Delete Contact</a>
+                                                    <a class="dropdown-item" href="#"><i class="material-icons">
+                                                            clear</i>Clear History
+                                                    </a>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Scroll-to-bottom floating button -->
+                            <button id="scroll-btn" title="Scroll to latest">
+                                <i class="material-icons" style="font-size:20px">keyboard_arrow_down</i>
+                                <span class="unread-dot" id="unread-badge">0</span>
+                            </button>
 
                             <div class="content" id="content">
                                 <div class="container">
@@ -270,10 +654,17 @@
                                         <!-- My sent message -->
                                         <div class="message me" data-msg-id="{{ message.id }}">
                                             <div class="text-main">
-                                                <div class="text-group me">
-                                                    <div class="text me">
-                                                        <p>{{ message.message }}</p>
+                                                <div class="msg-wrapper">
+                                                    <div class="text-group me">
+                                                        <div class="text me">
+                                                            <p>{{ message.message }}</p>
+                                                        </div>
                                                     </div>
+                                                    <!-- Delete button (only visible on hover) -->
+                                                    <button class="delete-btn" data-delete-id="{{ message.id }}"
+                                                        title="Delete message">
+                                                        <i class="material-icons">delete_outline</i>
+                                                    </button>
                                                 </div>
                                                 <span>
                                                     {{ message.timestamp|date:"h:i A" }}
@@ -324,11 +715,6 @@
                                             <button type="submit" class="btn send"><i
                                                     class="material-icons">send</i></button>
                                         </form>
-                                        <label>
-                                            <input type="file">
-                                            <span class="btn attach d-sm-block d-none"><i
-                                                    class="material-icons">attach_file</i></span>
-                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -358,12 +744,60 @@
         // ─── DOM refs ────────────────────────────────────────────────────────
         const chatMessages = document.querySelector('#chat-messages');
         const content = document.getElementById('content');
+        const messageInput = document.querySelector('#message-input');
 
-        // ─── Helpers ─────────────────────────────────────────────────────────
-        function scrollToBottom() {
-            content.scrollTop = content.scrollHeight;
+        // ─── Scroll helpers ───────────────────────────────────────────────────
+        const scrollBtn = document.getElementById('scroll-btn');
+        const unreadBadge = document.getElementById('unread-badge');
+        let unreadCount = 0;         // messages received while user is scrolled up
+
+        /** Threshold (px from bottom) within which we consider the user "at bottom" */
+        const AT_BOTTOM_THRESHOLD = 80;
+
+        function isAtBottom() {
+            return content.scrollHeight - content.scrollTop - content.clientHeight <= AT_BOTTOM_THRESHOLD;
         }
 
+        /** Smooth-scroll to the very bottom of the message list. */
+        function scrollToBottom(smooth) {
+            content.scrollTo({
+                top: content.scrollHeight,
+                behavior: smooth === false ? 'auto' : 'smooth'
+            });
+        }
+
+        /** Show / hide the FAB and keep the badge count updated. */
+        function updateScrollBtn() {
+            if (isAtBottom()) {
+                scrollBtn.classList.remove('visible');
+                unreadCount = 0;
+                unreadBadge.classList.remove('show');
+                unreadBadge.textContent = '0';
+            } else {
+                scrollBtn.classList.add('visible');
+            }
+        }
+
+        /** Increment unread badge when a message arrives while scrolled up. */
+        function bumpUnread() {
+            unreadCount++;
+            unreadBadge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            unreadBadge.classList.add('show');
+        }
+
+        // Hide FAB and jump to bottom when clicked
+        scrollBtn.addEventListener('click', function () {
+            scrollToBottom();
+            unreadCount = 0;
+            unreadBadge.classList.remove('show');
+            unreadBadge.textContent = '0';
+            scrollBtn.classList.remove('visible');
+        });
+
+        // Track scroll position to show/hide FAB
+        content.addEventListener('scroll', updateScrollBtn, { passive: true });
+
+        // ─── Tick helpers ─────────────────────────────────────────────────────
         /** Build the ✓ (sent) tick HTML */
         function sentTickHtml() {
             return `<span class="read-status sent" title="Sent">
@@ -386,19 +820,6 @@
             ids.forEach(function (id) {
                 const bubble = document.querySelector('.message.me[data-msg-id="' + id + '"]');
                 if (!bubble) return;
-                const sentTick = bubble.querySelector('.read-status.sent');
-                if (sentTick) {
-                    sentTick.outerHTML = readTickHtml();
-                }
-            });
-        }
-
-        /**
-         * Upgrade ALL existing ✓ → ✓✓ on messages sent by me.
-         * Called when the other user connects to the chat (they've read everything).
-         */
-        function markAllMyTicksAsRead() {
-            document.querySelectorAll('.message.me').forEach(function (bubble) {
                 const sentTick = bubble.querySelector('.read-status.sent');
                 if (sentTick) {
                     sentTick.outerHTML = readTickHtml();
@@ -460,10 +881,15 @@
                     messageHtml = `
                     <div class="message me" data-msg-id="${messageId}">
                         <div class="text-main">
-                            <div class="text-group me">
-                                <div class="text me">
-                                    <p>${message}</p>
+                            <div class="msg-wrapper">
+                                <div class="text-group me">
+                                    <div class="text me">
+                                        <p>${message}</p>
+                                    </div>
                                 </div>
+                                <button class="delete-btn" data-delete-id="${messageId}" title="Delete message">
+                                    <i class="material-icons">delete_outline</i>
+                                </button>
                             </div>
                             <span>${time} ${sentTickHtml()}</span>
                         </div>
@@ -495,7 +921,17 @@
                 }
 
                 chatMessages.insertAdjacentHTML('beforeend', messageHtml);
-                scrollToBottom();
+
+                if (senderId === currentUserId) {
+                    // Always scroll to own sent messages (smooth)
+                    scrollToBottom();
+                } else if (isAtBottom()) {
+                    // Receiver is already at bottom – keep them there (smooth)
+                    scrollToBottom();
+                } else {
+                    // Receiver scrolled up reading history – show unread badge
+                    bumpUnread();
+                }
 
             } else if (data.type === 'messages_read') {
                 // ── Read receipt: upgrade ✓ → ✓✓ for specific IDs ────────
@@ -503,6 +939,10 @@
                 if (data.reader_id !== currentUserId) {
                     markTicksAsRead(data.read_ids);
                 }
+
+            } else if (data.type === 'message_deleted') {
+                // ── Remove the deleted message bubble from both screens ──
+                removeBubble(data.message_id);
             }
         };
 
@@ -510,10 +950,72 @@
             console.error('Chat socket closed unexpectedly');
         };
 
-        // ─── Sending messages ─────────────────────────────────────────────
-        scrollToBottom();
+        // ─── Initial scroll (instant, no animation flash) ─────────────────────
+        scrollToBottom(false);
 
-        const messageInput = document.querySelector('#message-input');
+        // ─── Delete message ───────────────────────────────────────────────────
+        /**
+         * Called when the sender clicks the delete button on one of their own messages.
+         * 1. Sends an AJAX POST to the server (first permission check).
+         * 2. If the server confirms deletion, sends a WS 'delete_message' event
+         *    so both participants' screens remove the bubble in real time.
+         */
+        // ─── Event delegation for delete buttons ─────────────────────────────
+        chatMessages.addEventListener('click', function (e) {
+            const btn = e.target.closest('.delete-btn[data-delete-id]');
+            if (btn) deleteMessage(Number(btn.dataset.deleteId));
+        });
+
+        function deleteMessage(messageId) {
+            if (!confirm('Delete this message?')) return;
+
+            fetch(`/chat/messages/${messageId}/delete/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+            })
+                .then(function (r) {
+                    if (r.status === 403) {
+                        alert('You can only delete your own messages.');
+                        throw new Error('forbidden');
+                    }
+                    if (!r.ok) throw new Error('delete failed');
+                    return r.json();
+                })
+                .then(function (data) {
+                    if (data.deleted) {
+                        // Notify both participants via WS to remove the bubble
+                        if (chatSocket.readyState === WebSocket.OPEN) {
+                            chatSocket.send(JSON.stringify({
+                                type: 'delete_message',
+                                message_id: messageId,
+                            }));
+                        } else {
+                            // WS unavailable — remove locally only
+                            removeBubble(messageId);
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    if (err.message !== 'forbidden') {
+                        console.error('Delete error:', err);
+                    }
+                });
+        }
+
+        /**
+         * Animate and remove a message bubble from the DOM.
+         * @param {number} messageId
+         */
+        function removeBubble(messageId) {
+            const bubble = document.querySelector('[data-msg-id="' + messageId + '"]');
+            if (!bubble) return;
+            bubble.classList.add('msg-deleting');
+            bubble.addEventListener('animationend', function () {
+                bubble.remove();
+            }, { once: true });
+        }
+
+        // ─── Send on Enter ────────────────────────────────────────────────────
 
         messageInput.onkeyup = function (e) {
             if (e.keyCode === 13 && !e.shiftKey) {
@@ -530,6 +1032,117 @@
                 messageInput.value = '';
             }
         };
+
+        // ─── Dark / Light theme toggle ────────────────────────────────────────
+        (function () {
+            const html = document.documentElement;
+            const toggleBtn = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+
+            /** Apply the given theme ('dark' | 'light') and update the icon. */
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    html.classList.add('dark');
+                    themeIcon.textContent = 'brightness_7';   // sun icon
+                    toggleBtn.title = 'Switch to light mode';
+                } else {
+                    html.classList.remove('dark');
+                    themeIcon.textContent = 'brightness_2';   // moon icon
+                    toggleBtn.title = 'Switch to dark mode';
+                }
+            }
+
+            // Restore saved preference on load
+            const saved = localStorage.getItem('chatTheme') || 'light';
+            applyTheme(saved);
+
+            // Toggle on click and save
+            toggleBtn.addEventListener('click', function () {
+                const next = html.classList.contains('dark') ? 'light' : 'dark';
+                applyTheme(next);
+                localStorage.setItem('chatTheme', next);
+            });
+        })();
+
+        // ─── My Account \u2500 profile form ─────────────────────────────────────────
+        (function () {
+            const picInput = document.getElementById('pic-input');
+            const avatarPreview = document.getElementById('avatar-preview');
+            const profileForm = document.getElementById('profile-form');
+            const profileMsg = document.getElementById('profile-msg');
+
+            // Clicking the preview image also opens the file picker
+            if (avatarPreview) {
+                avatarPreview.addEventListener('click', function () {
+                    picInput.click();
+                });
+            }
+
+            // Live-preview the chosen image before saving
+            if (picInput) {
+                picInput.addEventListener('change', function () {
+                    const file = picInput.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        avatarPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            /** Update every avatar image on the page with newUrl */
+            function updateAllAvatars(newUrl) {
+                if (!newUrl) return;
+                ['nav-avatar-img', 'settings-avatar-img', 'avatar-preview'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el) el.src = newUrl + '?t=' + Date.now(); // cache-bust
+                });
+            }
+
+            if (profileForm) {
+                profileForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    profileMsg.textContent = '';
+                    profileMsg.style.color = '';
+
+                    const formData = new FormData(profileForm);
+
+                    fetch('/auth/profile/update/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken },
+                        body: formData,
+                    })
+                        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                const errs = res.data.errors || {};
+                                profileMsg.style.color = '#ef4444';
+                                profileMsg.textContent = Object.values(errs).join(' ');
+                                return;
+                            }
+                            const d = res.data;
+                            // Update username & email displayed in the settings profile header
+                            const uEl = document.getElementById('settings-username');
+                            const eEl = document.getElementById('settings-email');
+                            if (uEl) uEl.textContent = d.username;
+                            if (eEl) eEl.textContent = d.email;
+
+                            // Update avatars everywhere
+                            if (d.picture_url) updateAllAvatars(d.picture_url);
+
+                            profileMsg.style.color = '#22c55e';
+                            profileMsg.textContent = '\u2713 Profile updated!';
+                            setTimeout(function () { profileMsg.textContent = ''; }, 3000);
+                        })
+                        .catch(function (err) {
+                            console.error('Profile update error:', err);
+                            profileMsg.style.color = '#ef4444';
+                            profileMsg.textContent = 'Something went wrong. Please try again.';
+                        });
+                });
+            }
+        })();
     </script>
 </body>
 

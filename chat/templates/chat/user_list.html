@@ -11,8 +11,13 @@
     <link href="{% static 'dist/css/lib/bootstrap.min.css' %}" type="text/css" rel="stylesheet">
     <!-- Swipe core CSS -->
     <link href="{% static 'dist/css/swipe.min.css' %}" type="text/css" rel="stylesheet">
-    <!-- Online status colour override: green instead of theme blue -->
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Favicon -->
+    <link href="{% static 'dist/img/favicon.png' %}" type="image/png" rel="icon">
+
     <style>
+        /* ── Online status ── */
         .material-icons.online {
             color: #22c55e !important;
         }
@@ -20,11 +25,144 @@
         .status-online {
             color: #22c55e !important;
         }
+
+        /* ── Dark theme ── */
+        body,
+        .navigation,
+        .sidebar,
+        .main,
+        .chat,
+        .top,
+        .content,
+        .bottom,
+        .text,
+        .contacts,
+        .settings,
+        .profile,
+        .category,
+        .title,
+        .form-control,
+        .list-group-item,
+        a,
+        .data h5,
+        .data p,
+        span,
+        .dropdown-menu,
+        .dropdown-item,
+        input,
+        textarea,
+        .search {
+            transition: background-color .25s ease, color .25s ease,
+                border-color .25s ease, box-shadow .25s ease;
+        }
+
+        html.dark body {
+            background-color: #0f0f13 !important;
+            color: #e2e2e6 !important;
+        }
+
+        /* Navigation rail */
+        html.dark .navigation {
+            background-color: #1a1a24 !important;
+            border-right: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .navigation .btn,
+        html.dark .navigation a {
+            color: #a0a0b8 !important;
+        }
+
+        html.dark .navigation a:hover,
+        html.dark .navigation .btn:hover {
+            color: #e2e2e6 !important;
+        }
+
+        /* Sidebar */
+        html.dark .sidebar {
+            background-color: #16161f !important;
+            border-right: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .sidebar h1 {
+            color: #b0b0cc !important;
+        }
+
+        html.dark .search .form-control {
+            background-color: #222230 !important;
+            border-color: #33334a !important;
+            color: #e2e2e6 !important;
+        }
+
+        html.dark .search .form-control::placeholder {
+            color: #666680 !important;
+        }
+
+        /* Contact list items */
+        html.dark .contacts .list-group a.contact {
+            background-color: transparent !important;
+            border-bottom: 1px solid #22223a !important;
+        }
+
+        html.dark .contacts .list-group a.contact:hover,
+        html.dark .contacts .list-group a.contact.active {
+            background-color: #222230 !important;
+        }
+
+        html.dark .data h5 {
+            color: #e2e2e6 !important;
+        }
+
+        html.dark .data p {
+            color: #84849e !important;
+        }
+
+        /* Settings panel */
+        html.dark .settings {
+            background-color: #16161f !important;
+        }
+
+        html.dark .settings h1 {
+            color: #b0b0cc !important;
+        }
+
+        html.dark .category {
+            border-bottom: 1px solid #2a2a38 !important;
+        }
+
+        html.dark .title {
+            color: #e2e2e6 !important;
+        }
+
+        html.dark .title p {
+            color: #84849e !important;
+        }
+
+        /* Main area */
+        html.dark .main {
+            background-color: #0f0f13 !important;
+        }
+
+        /* Dropdown menus */
+        html.dark .dropdown-menu {
+            background-color: #1e1e2e !important;
+            border-color: #2a2a3e !important;
+        }
+
+        html.dark .dropdown-item {
+            color: #c0c0d8 !important;
+        }
+
+        html.dark .dropdown-item:hover {
+            background-color: #2a2a3e !important;
+            color: #fff !important;
+        }
+
+        /* Mode button glow in dark mode */
+        html.dark .btn.mode .material-icons {
+            color: #f0c060 !important;
+            text-shadow: 0 0 8px rgba(240, 192, 96, .5);
+        }
     </style>
-    <!-- Favicon -->
-    <link href="{% static 'dist/img/favicon.png' %}" type="image/png" rel="icon">
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 
 <body>
@@ -35,19 +173,20 @@
                 <div class="container">
                     <div class="inside">
                         <div class="nav nav-tab menu">
-                            <button class="btn"><img class="avatar-xl"
-                                    src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}" alt="avatar"></button>
+                            <button class="btn" id="nav-avatar-btn">
+                                <img class="avatar-xl" id="nav-avatar-img"
+                                    src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
+                                    alt="avatar">
+                            </button>
                             <a href="#members" data-toggle="tab" class="active"><i
                                     class="material-icons">account_circle</i></a>
-                            <a href="#discussions" data-toggle="tab"><i
-                                    class="material-icons">chat_bubble_outline</i></a>
-                            <a href="#notifications" data-toggle="tab" class="f-grow1"><i
-                                    class="material-icons">notifications_none</i></a>
-                            <button class="btn mode"><i class="material-icons">brightness_2</i></button>
+                            <!-- discussions & notifications hidden (same as chat page) -->
+                            <button class="btn mode f-grow1" id="theme-toggle" title="Toggle dark mode"><i
+                                    class="material-icons" id="theme-icon">brightness_2</i></button>
                             <a href="#settings" data-toggle="tab"><i class="material-icons">settings</i></a>
                             <form action="{% url 'logout' %}" method="post" style="display: inline;">
                                 {% csrf_token %}
-                                <button type="submit" class="btn power"><i
+                                <button type="submit" class="btn power" title="Log out"><i
                                         class="material-icons">power_settings_new</i></button>
                             </form>
                         </div>
@@ -55,6 +194,7 @@
                 </div>
             </div>
             <!-- End of Navigation -->
+
             <!-- Start of Sidebar -->
             <div class="sidebar" id="sidebar">
                 <div class="container">
@@ -85,7 +225,7 @@
                                         <a href="{% url 'chat:chat_with_user' user.id %}"
                                             class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact">
                                             <img class="avatar-md"
-                                                src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                                                src="{% if user.profile_picture %}{{ user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
                                                 data-toggle="tooltip" data-placement="top" title="{{ user.username }}"
                                                 alt="avatar">
                                             <div class="status">
@@ -107,73 +247,85 @@
                                 </div>
                             </div>
                             <!-- End of Contacts -->
-                            <!-- Start of Discussions -->
-                            <div id="discussions" class="tab-pane fade">
-                                <div class="search">
-                                    <form class="form-inline position-relative">
-                                        <input type="search" class="form-control" id="conversations"
-                                            placeholder="Search for conversations...">
-                                        <button type="button" class="btn btn-link loop"><i
-                                                class="material-icons">search</i></button>
-                                    </form>
-                                    <button class="btn create" data-toggle="modal" data-target="#startnewchat"><i
-                                            class="material-icons">create</i></button>
-                                </div>
-                                <div class="list-group sort">
-                                    <button class="btn filterDiscussionsBtn active show" data-toggle="list"
-                                        data-filter="all">All</button>
-                                    <button class="btn filterDiscussionsBtn" data-toggle="list"
-                                        data-filter="read">Read</button>
-                                    <button class="btn filterDiscussionsBtn" data-toggle="list"
-                                        data-filter="unread">Unread</button>
-                                </div>
-                                <div class="discussions">
-                                    <h1>Discussions</h1>
-                                    <div class="list-group" id="chats" role="tablist">
-                                        <!-- Placeholders for discussions -->
-                                        <p class="text-center mt-4">Start a chat from Contacts!</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End of Discussions -->
-                            <!-- Start of Notifications -->
-                            <div id="notifications" class="tab-pane fade">
-                                <div class="search">
-                                    <form class="form-inline position-relative">
-                                        <input type="search" class="form-control" id="notice"
-                                            placeholder="Filter notifications...">
-                                        <button type="button" class="btn btn-link loop"><i
-                                                class="material-icons filter-list">filter_list</i></button>
-                                    </form>
-                                </div>
-                                <div class="notifications">
-                                    <h1>Notifications</h1>
-                                    <div class="list-group" id="alerts" role="tablist">
-                                        <!-- Placeholders -->
-                                        <p class="text-center mt-4">No notifications.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End of Notifications -->
+
                             <!-- Start of Settings -->
                             <div class="tab-pane fade" id="settings">
                                 <div class="settings">
                                     <div class="profile">
-                                        <img class="avatar-xl" src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}"
+                                        <img class="avatar-xl" id="settings-avatar-img"
+                                            src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
                                             alt="avatar">
-                                        <h1><a href="#">{{ request.user.username }}</a></h1>
-                                        <span>{{ request.user.email }}</span>
+                                        <h1><a href="#" id="settings-username">{{ request.user.username }}</a></h1>
+                                        <span id="settings-email">{{ request.user.email }}</span>
                                     </div>
                                     <div class="categories" id="accordionSettings">
                                         <h1>Settings</h1>
-                                        <!-- Start of Logout -->
+
+                                        <!-- ── My Account ── -->
+                                        <div class="category" style="padding: 16px 0;">
+                                            <div class="title"
+                                                style="cursor:default; padding: 0; display:flex; align-items:center; gap:10px;">
+                                                <i class="material-icons md-30"
+                                                    style="color:#6c63ff;">manage_accounts</i>
+                                                <div class="data">
+                                                    <h5 style="margin:0;">My Account</h5>
+                                                </div>
+                                            </div>
+
+                                            <form id="profile-form" style="margin-top:14px;"
+                                                enctype="multipart/form-data">
+                                                {% csrf_token %}
+
+                                                <!-- Avatar upload -->
+                                                <div
+                                                    style="display:flex; flex-direction:column; align-items:center; gap:8px; margin-bottom:14px;">
+                                                    <img id="avatar-preview"
+                                                        src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-male-1.jpg' %}{% endif %}"
+                                                        alt="preview"
+                                                        style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #6c63ff; cursor:pointer;"
+                                                        title="Click to change photo">
+                                                    <input type="file" id="pic-input" name="profile_picture"
+                                                        accept="image/*" style="display:none;">
+                                                    <label for="pic-input"
+                                                        style="font-size:12px; color:#6c63ff; cursor:pointer; margin:0;">Change
+                                                        photo</label>
+                                                </div>
+
+                                                <!-- Username -->
+                                                <div style="margin-bottom:10px;">
+                                                    <label
+                                                        style="font-size:12px; color:#9ca3af; display:block; margin-bottom:4px;">Username</label>
+                                                    <input type="text" name="username" class="form-control"
+                                                        value="{{ request.user.username }}" placeholder="Username"
+                                                        style="border-radius:8px; font-size:14px;">
+                                                </div>
+
+                                                <!-- Email -->
+                                                <div style="margin-bottom:14px;">
+                                                    <label
+                                                        style="font-size:12px; color:#9ca3af; display:block; margin-bottom:4px;">Email</label>
+                                                    <input type="email" name="email" class="form-control"
+                                                        value="{{ request.user.email }}" placeholder="Email"
+                                                        style="border-radius:8px; font-size:14px;">
+                                                </div>
+
+                                                <div id="profile-msg"
+                                                    style="font-size:13px; margin-bottom:8px; min-height:18px;"></div>
+
+                                                <button type="submit" class="btn btn-primary btn-block"
+                                                    style="background:#6c63ff; border:none; border-radius:8px; width:100%; padding:10px; font-weight:600;">
+                                                    Save changes
+                                                </button>
+                                            </form>
+                                        </div>
+
+                                        <!-- ── Log out ── -->
                                         <div class="category">
                                             <form action="{% url 'logout' %}" method="post" style="width: 100%;">
                                                 {% csrf_token %}
                                                 <button type="submit" class="title collapsed"
                                                     style="border: none; background: none; width: 100%; text-align: left; padding: 20px 0;">
-                                                    <i class="material-icons md-30"
-                                                        style="color: #dc3545;">power_settings_new</i>
+                                                    <i class="material-icons md-30 online">power_settings_new</i>
                                                     <div class="data">
                                                         <h5>Power Off</h5>
                                                         <p>Log out of your account</p>
@@ -182,7 +334,6 @@
                                                 </button>
                                             </form>
                                         </div>
-                                        <!-- End of Logout -->
                                     </div>
                                 </div>
                             </div>
@@ -200,7 +351,7 @@
                         <!-- Start of Chat -->
                         <div class="chat" id="chat1">
                             <div class="top">
-                                <!-- Top bar placeholder if needed, usually shows active chat info -->
+                                <!-- Top bar placeholder -->
                             </div>
                             <div class="content empty">
                                 <div class="container">
@@ -219,12 +370,117 @@
             </div>
         </div> <!-- Layout -->
     </main>
+
     <!-- Bootstrap/Swipe core JavaScript -->
     <script src="{% static 'dist/js/jquery-3.3.1.slim.min.js' %}"></script>
     <script>window.jQuery || document.write('<script src="{% static "dist/js/vendor/jquery-slim.min.js" %}"><\/script>')</script>
     <script src="{% static 'dist/js/vendor/popper.min.js' %}"></script>
     <script src="{% static 'dist/js/bootstrap.min.js' %}"></script>
     <script src="{% static 'dist/js/swipe.min.js' %}"></script>
+
+    <script>
+        const csrfToken = "{{ csrf_token }}";
+
+        // ─── Dark / Light theme toggle ────────────────────────────────────────
+        (function () {
+            const html = document.documentElement;
+            const toggleBtn = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+
+            function applyTheme(theme) {
+                if (theme === 'dark') {
+                    html.classList.add('dark');
+                    themeIcon.textContent = 'brightness_7';
+                    toggleBtn.title = 'Switch to light mode';
+                } else {
+                    html.classList.remove('dark');
+                    themeIcon.textContent = 'brightness_2';
+                    toggleBtn.title = 'Switch to dark mode';
+                }
+            }
+
+            const saved = localStorage.getItem('chatTheme') || 'light';
+            applyTheme(saved);
+
+            toggleBtn.addEventListener('click', function () {
+                const next = html.classList.contains('dark') ? 'light' : 'dark';
+                applyTheme(next);
+                localStorage.setItem('chatTheme', next);
+            });
+        })();
+
+        // ─── My Account – profile form ────────────────────────────────────────
+        (function () {
+            const picInput = document.getElementById('pic-input');
+            const avatarPreview = document.getElementById('avatar-preview');
+            const profileForm = document.getElementById('profile-form');
+            const profileMsg = document.getElementById('profile-msg');
+
+            // Clicking the preview image opens the file picker
+            if (avatarPreview) {
+                avatarPreview.addEventListener('click', function () { picInput.click(); });
+            }
+
+            // Live-preview chosen image before saving
+            if (picInput) {
+                picInput.addEventListener('change', function () {
+                    const file = picInput.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function (e) { avatarPreview.src = e.target.result; };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function updateAllAvatars(newUrl) {
+                if (!newUrl) return;
+                ['nav-avatar-img', 'settings-avatar-img', 'avatar-preview'].forEach(function (id) {
+                    const el = document.getElementById(id);
+                    if (el) el.src = newUrl + '?t=' + Date.now();
+                });
+            }
+
+            if (profileForm) {
+                profileForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    profileMsg.textContent = '';
+                    profileMsg.style.color = '';
+
+                    const formData = new FormData(profileForm);
+
+                    fetch('/auth/profile/update/', {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': csrfToken },
+                        body: formData,
+                    })
+                        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, data: d }; }); })
+                        .then(function (res) {
+                            if (!res.ok) {
+                                const errs = res.data.errors || {};
+                                profileMsg.style.color = '#ef4444';
+                                profileMsg.textContent = Object.values(errs).join(' ');
+                                return;
+                            }
+                            const d = res.data;
+                            const uEl = document.getElementById('settings-username');
+                            const eEl = document.getElementById('settings-email');
+                            if (uEl) uEl.textContent = d.username;
+                            if (eEl) eEl.textContent = d.email;
+                            if (d.picture_url) updateAllAvatars(d.picture_url);
+
+                            profileMsg.style.color = '#22c55e';
+                            profileMsg.textContent = '✓ Profile updated!';
+                            setTimeout(function () { profileMsg.textContent = ''; }, 3000);
+                        })
+                        .catch(function (err) {
+                            console.error('Profile update error:', err);
+                            profileMsg.style.color = '#ef4444';
+                            profileMsg.textContent = 'Something went wrong. Please try again.';
+                        });
+                });
+            }
+        })();
+    </script>
 </body>
 
 </html>
