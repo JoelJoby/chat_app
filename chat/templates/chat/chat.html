@@ -78,6 +78,50 @@
             display: flex;
         }
 
+        /* ── Sidebar contact unread badge ── */
+        .unread-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #ef4444;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            min-width: 20px;
+            height: 20px;
+            border-radius: 10px;
+            padding: 0 5px;
+            line-height: 1;
+            margin-left: auto;
+            flex-shrink: 0;
+            box-shadow: 0 2px 6px rgba(239, 68, 68, .45);
+            animation: badgePop .18s ease;
+        }
+
+        .unread-badge.hidden {
+            display: none !important;
+        }
+
+        @keyframes badgePop {
+            from {
+                transform: scale(0.6);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* keep person-add aligned in the same flex row */
+        .contact .person-add {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         /* ── Read-receipt tick marks ── */
         .read-status {
             display: inline-flex;
@@ -169,6 +213,192 @@
         .msg-deleting {
             overflow: hidden;
             animation: fadeOutShrink .3s ease forwards;
+        }
+
+        /* ── Emoji Picker ── */
+        #emoji-picker {
+            position: absolute;
+            bottom: 60px;
+            right: 70px;
+            width: 310px;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, .15);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: emojiIn .15s ease;
+        }
+
+        @keyframes emojiIn {
+            from {
+                opacity: 0;
+                transform: scale(.95) translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        #emoji-picker.open {
+            display: flex;
+        }
+
+        .emoji-tabs {
+            display: flex;
+            border-bottom: 1px solid #e5e7eb;
+            background: #f9fafb;
+            padding: 4px 6px 0;
+            gap: 2px;
+        }
+
+        .emoji-tab {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 18px;
+            padding: 6px 4px;
+            cursor: pointer;
+            border-radius: 8px 8px 0 0;
+            opacity: .55;
+            transition: opacity .15s, background .15s;
+        }
+
+        .emoji-tab:hover {
+            opacity: 1;
+            background: #f0f0f5;
+        }
+
+        .emoji-tab.active {
+            opacity: 1;
+            background: #fff;
+            border-bottom: 2px solid #6c63ff;
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 2px;
+            padding: 8px;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .emoji-cell {
+            font-size: 22px;
+            text-align: center;
+            padding: 5px 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            line-height: 1;
+            transition: background .1s, transform .1s;
+            user-select: none;
+        }
+
+        .emoji-cell:hover {
+            background: #f0eeff;
+            transform: scale(1.2);
+        }
+
+        /* Dark mode picker */
+        html.dark #emoji-picker {
+            background: #1e1e2e !important;
+            border-color: #2a2a3e !important;
+        }
+
+        html.dark .emoji-tabs {
+            background: #16161f !important;
+            border-bottom-color: #2a2a3e !important;
+        }
+
+        html.dark .emoji-tab {
+            color: #e2e2e6;
+        }
+
+        html.dark .emoji-tab:hover {
+            background: #2a2a3e !important;
+        }
+
+        html.dark .emoji-tab.active {
+            background: #1e1e2e !important;
+            border-bottom-color: #6c63ff;
+        }
+
+        html.dark .emoji-cell:hover {
+            background: #3a2d6e;
+        }
+
+        /* ── Typing indicator ── */
+        #typing-indicator {
+            display: none;
+            /* hidden until other user starts typing */
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0 10px 4px;
+        }
+
+        #typing-indicator.visible {
+            display: flex;
+        }
+
+        .typing-bubble {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #f0f0f5;
+            border-radius: 18px 18px 18px 4px;
+            padding: 10px 14px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .08);
+        }
+
+        html.dark .typing-bubble {
+            background: #1e1e2e !important;
+        }
+
+        .typing-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #6c63ff;
+            animation: typingBounce 1.2s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: .2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: .4s;
+        }
+
+        @keyframes typingBounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: .4;
+            }
+
+            30% {
+                transform: translateY(-6px);
+                opacity: 1;
+            }
+        }
+
+        .typing-label {
+            font-size: 12px;
+            color: #9ca3af;
+            font-style: italic;
+            white-space: nowrap;
+        }
+
+        html.dark .typing-label {
+            color: #666680 !important;
         }
 
         /* ── Dark theme ── */
@@ -462,6 +692,11 @@
                                             </div>
                                             <div class="person-add">
                                                 <i class="material-icons">person</i>
+                                                <span
+                                                    class="unread-badge{% if not user.unread_count %} hidden{% endif %}"
+                                                    id="unread-sb-{{ user.id }}" title="{{ user.unread_count }} unread">
+                                                    {{ user.unread_count }}
+                                                </span>
                                             </div>
                                         </a>
                                         {% empty %}
@@ -630,7 +865,8 @@
                                                     aria-expanded="false"><i
                                                         class="material-icons md-30">more_vert</i></button>
                                                 <div class="dropdown-menu dropdown-menu-right">
-                                                    <a class="dropdown-item" href="#"><i class="material-icons">
+                                                    <a class="dropdown-item" href="#" id="clear-history-btn"><i
+                                                            class="material-icons">
                                                             clear</i>Clear History
                                                     </a>
                                                 </div>
@@ -700,6 +936,20 @@
                                         </div>
                                         {% endif %}
                                         {% endfor %}
+
+                                        <!-- Typing indicator -->
+                                        <div id="typing-indicator">
+                                            <img class="avatar-md"
+                                                src="{% if other_user.profile_picture %}{{ other_user.profile_picture.url }}{% else %}{% static 'dist/img/avatars/avatar-female-1.jpg' %}{% endif %}"
+                                                alt="{{ other_user.username }}">
+                                            <div class="typing-bubble">
+                                                <span class="typing-dot"></span>
+                                                <span class="typing-dot"></span>
+                                                <span class="typing-dot"></span>
+                                            </div>
+                                            <span class="typing-label">{{ other_user.username }} is typing…</span>
+                                        </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -710,11 +960,13 @@
                                         <form class="position-relative w-100" id="chat-form">
                                             <textarea class="form-control" placeholder="Start typing for reply..."
                                                 rows="1" id="message-input"></textarea>
-                                            <button class="btn emoticons"><i
+                                            <button type="button" class="btn emoticons" id="emoji-btn"><i
                                                     class="material-icons">insert_emoticon</i></button>
                                             <button type="submit" class="btn send"><i
                                                     class="material-icons">send</i></button>
                                         </form>
+                                        <!-- Emoji Picker Panel -->
+                                        <div id="emoji-picker" role="dialog" aria-label="Emoji picker"></div>
                                     </div>
                                 </div>
                             </div>
@@ -825,6 +1077,20 @@
                     sentTick.outerHTML = readTickHtml();
                 }
             });
+        }
+
+        // ─── Sidebar unread badge helpers ─────────────────────────────────────
+        /**
+         * Zero-out and hide the sidebar unread badge for a given user ID.
+         * Called when that user reads our messages (messages_read event).
+         * @param {number} uid
+         */
+        function clearSidebarBadge(uid) {
+            const badge = document.getElementById('unread-sb-' + uid);
+            if (badge) {
+                badge.textContent = '0';
+                badge.classList.add('hidden');
+            }
         }
 
         // ─── WebSocket ───────────────────────────────────────────────────────
@@ -938,11 +1204,25 @@
                 // Only act if WE are the original sender (reader is the other user)
                 if (data.reader_id !== currentUserId) {
                     markTicksAsRead(data.read_ids);
+                    // Clear the sidebar badge for the user who just read
+                    clearSidebarBadge(data.reader_id);
                 }
 
             } else if (data.type === 'message_deleted') {
                 // ── Remove the deleted message bubble from both screens ──
                 removeBubble(data.message_id);
+
+            } else if (data.type === 'user_typing') {
+                // ── Other user started typing ─────────────────────────────
+                if (data.sender_id !== currentUserId) {
+                    showTypingIndicator();
+                }
+
+            } else if (data.type === 'user_stop_typing') {
+                // ── Other user stopped typing ─────────────────────────────
+                if (data.sender_id !== currentUserId) {
+                    hideTypingIndicator();
+                }
             }
         };
 
@@ -1015,6 +1295,33 @@
             }, { once: true });
         }
 
+        // ─── Clear History ────────────────────────────────────────────────────
+        document.getElementById('clear-history-btn').addEventListener('click', function (e) {
+            e.preventDefault();
+            if (!confirm('Clear all messages in this conversation? This cannot be undone.')) return;
+
+            fetch(`/chat/chat/${userId}/clear/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken },
+            })
+                .then(function (r) {
+                    if (!r.ok) throw new Error('clear failed');
+                    return r.json();
+                })
+                .then(function (data) {
+                    if (data.cleared) {
+                        // Animate-out every message bubble
+                        document.querySelectorAll('#chat-messages [data-msg-id]').forEach(function (bubble) {
+                            bubble.classList.add('msg-deleting');
+                            bubble.addEventListener('animationend', function () {
+                                bubble.remove();
+                            }, { once: true });
+                        });
+                    }
+                })
+                .catch(function (err) { console.error('Clear history error:', err); });
+        });
+
         // ─── Send on Enter ────────────────────────────────────────────────────
 
         messageInput.onkeyup = function (e) {
@@ -1030,8 +1337,71 @@
             if (message !== '') {
                 chatSocket.send(JSON.stringify({ 'message': message }));
                 messageInput.value = '';
+                // Stop typing signal when message is actually sent
+                sendStopTyping();
             }
         };
+
+        // ─── Typing indicator logic ───────────────────────────────────────────
+        const typingIndicatorEl = document.getElementById('typing-indicator');
+        let typingTimer = null;          // debounce handle
+        let isTyping = false;            // our own typing state
+        const TYPING_DEBOUNCE_MS = 1500; // silence after 1.5 s = stop
+        const TYPING_AUTO_HIDE_MS = 5000;// safety: hide after 5 s even without stop signal
+        let typingAutoHideTimer = null;
+
+        /** Show the indicator and scroll to it if the user is at the bottom. */
+        function showTypingIndicator() {
+            typingIndicatorEl.classList.add('visible');
+            if (isAtBottom()) scrollToBottom();
+            // Auto-hide safety valve (catches dropped stop signals)
+            clearTimeout(typingAutoHideTimer);
+            typingAutoHideTimer = setTimeout(hideTypingIndicator, TYPING_AUTO_HIDE_MS);
+        }
+
+        /** Hide the indicator and cancel the auto-hide timer. */
+        function hideTypingIndicator() {
+            typingIndicatorEl.classList.remove('visible');
+            clearTimeout(typingAutoHideTimer);
+        }
+
+        /** Tell the server we are actively typing (debounced). */
+        function sendTyping() {
+            if (!isTyping) {
+                isTyping = true;
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({ type: 'typing' }));
+                }
+            }
+            // Restart the stop-typing timer on every keystroke
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(sendStopTyping, TYPING_DEBOUNCE_MS);
+        }
+
+        /** Tell the server we stopped typing. */
+        function sendStopTyping() {
+            if (isTyping) {
+                isTyping = false;
+                if (chatSocket.readyState === WebSocket.OPEN) {
+                    chatSocket.send(JSON.stringify({ type: 'stop_typing' }));
+                }
+            }
+            clearTimeout(typingTimer);
+        }
+
+        // Fire on every input event (handles paste, autocomplete, etc.)
+        messageInput.addEventListener('input', function () {
+            if (messageInput.value.trim() === '') {
+                sendStopTyping();   // field is empty → definitely not typing
+            } else {
+                sendTyping();
+            }
+        });
+
+        // Also stop when the window loses focus
+        window.addEventListener('blur', sendStopTyping);
+        // And when the socket closes cleanly
+        chatSocket.addEventListener('close', sendStopTyping);
 
         // ─── Dark / Light theme toggle ────────────────────────────────────────
         (function () {
@@ -1142,6 +1512,121 @@
                         });
                 });
             }
+        })();
+
+        // ─── Emoji Picker ─────────────────────────────────────────────────────
+        (function () {
+            const CATEGORIES = [
+                {
+                    icon: '😀', label: 'Smileys',
+                    emojis: ['😀', '😁', '😂', '🤣', '😃', '😄', '😅', '😆', '😉', '😊',
+                        '😋', '😎', '😍', '🥰', '😘', '😗', '😙', '😚', '🙂', '🤗',
+                        '🤩', '🤔', '🤨', '😐', '😑', '😶', '🙄', '😏', '😣', '😥',
+                        '😮', '🤐', '😯', '😪', '😫', '🥱', '😴', '😌', '😛', '😜',
+                        '😝', '🤤', '😒', '😓', '😔', '😕', '🙃', '🤑', '😲', '😷',
+                        '🤒', '🤕', '🤢', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '😬',
+                        '😱', '😨', '😰', '😢', '😭', '😤', '😠', '😡', '🤬', '😈']
+                },
+                {
+                    icon: '👋', label: 'Gestures',
+                    emojis: ['👍', '👎', '👌', '🤌', '🤏', '✌️', '🤞', '🤟', '🤘', '🤙',
+                        '👈', '👉', '👆', '🖕', '👇', '☝️', '👋', '🤚', '🖐️', '✋',
+                        '🖖', '🤝', '👏', '🙌', '🤲', '🙏', '✍️', '💪', '🦾', '🦿',
+                        '👊', '✊', '🤛', '🤜', '🫱', '🫲', '🫴', '🫵', '🤙']
+                },
+                {
+                    icon: '👶', label: 'People',
+                    emojis: ['👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👩', '🧓',
+                        '👴', '👵', '🙍', '🙎', '🙅', '🙆', '💁', '🙋', '🧏', '🙇',
+                        '🤦', '🤷', '💆', '💇', '🚶', '🧍', '🧎', '🏃', '💃', '🕺',
+                        '👫', '👬', '👭', '💑', '👨‍👩‍👦', '🥷', '🧑‍🦰', '🧑‍🦱', '🧑‍🦳', '🧑‍🦲']
+                },
+                {
+                    icon: '🐶', label: 'Animals',
+                    emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯',
+                        '🦁', '🐮', '🐷', '🐸', '🐵', '🙈', '🙉', '🙊', '🐔', '🦆',
+                        '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🦋', '🐛',
+                        '🐢', '🐍', '🦎', '🦖', '🐙', '🦑', '🦐', '🐡', '🐬', '🐳']
+                },
+                {
+                    icon: '🍕', label: 'Food',
+                    emojis: ['🍕', '🍔', '🍟', '🌭', '🍿', '🧂', '🥓', '🥚', '🍳', '🧇',
+                        '🥞', '🧈', '🍞', '🥐', '🥨', '🧀', '🥗', '🥙', '🌮', '🌯',
+                        '🫔', '🥪', '🍝', '🍜', '🍲', '🍛', '🍣', '🍱', '🍤', '🍙',
+                        '☕', '🧋', '🍵', '🍺', '🍻', '🥂', '🍷', '🍸', '🍹', '🧃']
+                },
+                {
+                    icon: '⚽', label: 'Activities',
+                    emojis: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱',
+                        '🏓', '🏸', '🥊', '🥋', '🥅', '⛳', '🎣', '🤿', '🎽', '🎿',
+                        '🛷', '🏋️', '🤼', '🤺', '🤸', '⛹️', '🤾', '🏇', '🧘', '🏄']
+                },
+                {
+                    icon: '❤️', label: 'Symbols',
+                    emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔',
+                        '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
+                        '✝️', '☯️', '🔥', '💥', '✨', '⭐', '🌟', '💫', '⚡', '🌈',
+                        '🎉', '🎊', '🎈', '🎁', '🏆', '🥇', '🎯', '🎮', '🎲', '🃏']
+                },
+            ];
+
+            const picker = document.getElementById('emoji-picker');
+            const emojiBtn = document.getElementById('emoji-btn');
+            const input = document.getElementById('message-input');
+
+            // Build picker HTML once
+            let tabsHtml = '<div class="emoji-tabs">';
+            let gridsHtml = '';
+            CATEGORIES.forEach(function (cat, i) {
+                const active = i === 0 ? ' active' : '';
+                tabsHtml += `<button class="emoji-tab${active}" data-cat="${i}" title="${cat.label}">${cat.icon}</button>`;
+                gridsHtml += `<div class="emoji-grid" data-grid="${i}"${i !== 0 ? ' style="display:none"' : ''}>` +
+                    cat.emojis.map(function (em) {
+                        return `<span class="emoji-cell" title="${em}">${em}</span>`;
+                    }).join('') + '</div>';
+            });
+            tabsHtml += '</div>';
+            picker.innerHTML = tabsHtml + gridsHtml;
+
+            // Tab switching
+            picker.querySelectorAll('.emoji-tab').forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    picker.querySelectorAll('.emoji-tab').forEach(function (t) { t.classList.remove('active'); });
+                    picker.querySelectorAll('.emoji-grid').forEach(function (g) { g.style.display = 'none'; });
+                    tab.classList.add('active');
+                    picker.querySelector('[data-grid="' + tab.dataset.cat + '"]').style.display = 'grid';
+                });
+            });
+
+            // Insert emoji at cursor
+            picker.addEventListener('click', function (e) {
+                const cell = e.target.closest('.emoji-cell');
+                if (!cell) return;
+                const start = input.selectionStart;
+                const end = input.selectionEnd;
+                const val = input.value;
+                input.value = val.slice(0, start) + cell.textContent + val.slice(end);
+                // Restore cursor after emoji
+                const pos = start + cell.textContent.length;
+                input.setSelectionRange(pos, pos);
+                input.focus();
+            });
+
+            // Toggle picker
+            emojiBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                picker.classList.toggle('open');
+            });
+
+            // Close on outside click or Escape
+            document.addEventListener('click', function (e) {
+                if (!picker.contains(e.target) && e.target !== emojiBtn) {
+                    picker.classList.remove('open');
+                }
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') picker.classList.remove('open');
+            });
         })();
     </script>
 </body>

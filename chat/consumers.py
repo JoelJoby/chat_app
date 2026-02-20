@@ -146,6 +146,10 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self._handle_read_receipt(payload)
         elif msg_type == 'delete_message':
             await self._handle_delete_message(payload)
+        elif msg_type == 'typing':
+            await self._handle_typing()
+        elif msg_type == 'stop_typing':
+            await self._handle_stop_typing()
         else:
             await self._handle_chat_message(payload)
 
@@ -253,6 +257,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 self.user.username, message_id
             )
 
+    async def _handle_typing(self):
+        """Broadcast a typing signal to the other participant."""
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'user_typing',
+                'sender_id': self.user.id,
+            }
+        )
+
+    async def _handle_stop_typing(self):
+        """Broadcast a stop-typing signal to the other participant."""
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'user_stop_typing',
+                'sender_id': self.user.id,
+            }
+        )
+
     # ──────────────────────────────────────────────────────────────────────────
     # Group event handlers (channel layer → this WebSocket)
     # ──────────────────────────────────────────────────────────────────────────
@@ -281,6 +305,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'type': 'message_deleted',
             'message_id': event['message_id'],
             'deleted_by': event['deleted_by'],
+        }))
+
+    async def user_typing(self, event):
+        """Forward a typing signal to the connected client."""
+        await self.send(text_data=json.dumps({
+            'type': 'user_typing',
+            'sender_id': event['sender_id'],
+        }))
+
+    async def user_stop_typing(self, event):
+        """Forward a stop-typing signal to the connected client."""
+        await self.send(text_data=json.dumps({
+            'type': 'user_stop_typing',
+            'sender_id': event['sender_id'],
         }))
 
     # ──────────────────────────────────────────────────────────────────────────
