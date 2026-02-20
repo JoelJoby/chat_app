@@ -11,6 +11,16 @@
     <link href="{% static 'dist/css/lib/bootstrap.min.css' %}" type="text/css" rel="stylesheet">
     <!-- Swipe core CSS -->
     <link href="{% static 'dist/css/swipe.min.css' %}" type="text/css" rel="stylesheet">
+    <!-- Online status colour override: green instead of theme blue -->
+    <style>
+        .material-icons.online {
+            color: #22c55e !important;
+        }
+
+        .status-online {
+            color: #22c55e !important;
+        }
+    </style>
     <!-- Favicon -->
     <link href="{% static 'dist/img/favicon.png' %}" type="image/png" rel="icon">
     <!-- Material Icons -->
@@ -162,7 +172,8 @@
                                                 {% csrf_token %}
                                                 <button type="submit" class="title collapsed"
                                                     style="border: none; background: none; width: 100%; text-align: left; padding: 20px 0;">
-                                                    <i class="material-icons md-30 online">power_settings_new</i>
+                                                    <i class="material-icons md-30"
+                                                        style="color: #dc3545;">power_settings_new</i>
                                                     <div class="data">
                                                         <h5>Power Off</h5>
                                                         <p>Log out of your account</p>
