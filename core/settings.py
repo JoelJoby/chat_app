@@ -135,7 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = '/chat/general/'
+LOGIN_REDIRECT_URL = '/chat/users/'
 LOGOUT_REDIRECT_URL = 'login'
 
 # CSRF and Session Settings to avoid conflicts

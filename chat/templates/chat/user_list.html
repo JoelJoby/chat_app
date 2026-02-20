@@ -1,83 +1,221 @@
-{% extends 'base.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
 
-{% block content %}
-<div class="user-list-container">
-    <h2>Available Users</h2>
-    <div class="user-grid">
-        {% for user in users %}
-        <a href="{% url 'chat:start_chat' user.id %}" class="user-card">
-            <div class="user-info">
-                <span class="username">{{ user.username }}</span>
-                {% if user.is_online %}
-                <span class="status-dot online" title="Online"></span>
-                {% else %}
-                <span class="status-dot offline" title="Offline"></span>
-                {% endif %}
+<head>
+    <meta charset="utf-8">
+    <title>Swipe - The Simplest Chat Platform</title>
+    <meta name="description" content="#">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- Bootstrap core CSS -->
+    <link href="{% static 'dist/css/lib/bootstrap.min.css' %}" type="text/css" rel="stylesheet">
+    <!-- Swipe core CSS -->
+    <link href="{% static 'dist/css/swipe.min.css' %}" type="text/css" rel="stylesheet">
+    <!-- Favicon -->
+    <link href="{% static 'dist/img/favicon.png' %}" type="image/png" rel="icon">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+
+<body>
+    <main>
+        <div class="layout">
+            <!-- Start of Navigation -->
+            <div class="navigation">
+                <div class="container">
+                    <div class="inside">
+                        <div class="nav nav-tab menu">
+                            <button class="btn"><img class="avatar-xl"
+                                    src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}" alt="avatar"></button>
+                            <a href="#members" data-toggle="tab" class="active"><i
+                                    class="material-icons">account_circle</i></a>
+                            <a href="#discussions" data-toggle="tab"><i
+                                    class="material-icons">chat_bubble_outline</i></a>
+                            <a href="#notifications" data-toggle="tab" class="f-grow1"><i
+                                    class="material-icons">notifications_none</i></a>
+                            <button class="btn mode"><i class="material-icons">brightness_2</i></button>
+                            <a href="#settings" data-toggle="tab"><i class="material-icons">settings</i></a>
+                            <form action="{% url 'logout' %}" method="post" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn power"><i
+                                        class="material-icons">power_settings_new</i></button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </a>
-        {% empty %}
-        <p>No other users found.</p>
-        {% endfor %}
-    </div>
-</div>
+            <!-- End of Navigation -->
+            <!-- Start of Sidebar -->
+            <div class="sidebar" id="sidebar">
+                <div class="container">
+                    <div class="col-md-12">
+                        <div class="tab-content">
+                            <!-- Start of Contacts -->
+                            <div class="tab-pane fade show active" id="members">
+                                <div class="search">
+                                    <form class="form-inline position-relative">
+                                        <input type="search" class="form-control" id="people"
+                                            placeholder="Search for people...">
+                                        <button type="button" class="btn btn-link loop"><i
+                                                class="material-icons">search</i></button>
+                                    </form>
+                                </div>
+                                <div class="list-group sort">
+                                    <button class="btn filterMembersBtn active show" data-toggle="list"
+                                        data-filter="all">All</button>
+                                    <button class="btn filterMembersBtn" data-toggle="list"
+                                        data-filter="online">Online</button>
+                                    <button class="btn filterMembersBtn" data-toggle="list"
+                                        data-filter="offline">Offline</button>
+                                </div>
+                                <div class="contacts">
+                                    <h1>Contacts</h1>
+                                    <div class="list-group" id="contacts" role="tablist">
+                                        {% for user in users %}
+                                        <a href="{% url 'chat:start_chat' user.id %}"
+                                            class="filterMembers all {% if user.is_online %}online{% else %}offline{% endif %} contact"
+                                            data-toggle="list"
+                                            onclick="window.location.href='{% url 'chat:start_chat' user.id %}'">
+                                            <img class="avatar-md"
+                                                src="{% static 'dist/img/avatars/avatar-female-1.jpg' %}"
+                                                data-toggle="tooltip" data-placement="top" title="{{ user.username }}"
+                                                alt="avatar">
+                                            <div class="status">
+                                                <i
+                                                    class="material-icons {% if user.is_online %}online{% else %}offline{% endif %}">fiber_manual_record</i>
+                                            </div>
+                                            <div class="data">
+                                                <h5>{{ user.username }}</h5>
+                                                <p>{{ user.email }}</p>
+                                            </div>
+                                            <div class="person-add">
+                                                <i class="material-icons">person</i>
+                                            </div>
+                                        </a>
+                                        {% empty %}
+                                        <p>No other users found.</p>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End of Contacts -->
+                            <!-- Start of Discussions -->
+                            <div id="discussions" class="tab-pane fade">
+                                <div class="search">
+                                    <form class="form-inline position-relative">
+                                        <input type="search" class="form-control" id="conversations"
+                                            placeholder="Search for conversations...">
+                                        <button type="button" class="btn btn-link loop"><i
+                                                class="material-icons">search</i></button>
+                                    </form>
+                                    <button class="btn create" data-toggle="modal" data-target="#startnewchat"><i
+                                            class="material-icons">create</i></button>
+                                </div>
+                                <div class="list-group sort">
+                                    <button class="btn filterDiscussionsBtn active show" data-toggle="list"
+                                        data-filter="all">All</button>
+                                    <button class="btn filterDiscussionsBtn" data-toggle="list"
+                                        data-filter="read">Read</button>
+                                    <button class="btn filterDiscussionsBtn" data-toggle="list"
+                                        data-filter="unread">Unread</button>
+                                </div>
+                                <div class="discussions">
+                                    <h1>Discussions</h1>
+                                    <div class="list-group" id="chats" role="tablist">
+                                        <!-- Placeholders for discussions -->
+                                        <p class="text-center mt-4">Start a chat from Contacts!</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End of Discussions -->
+                            <!-- Start of Notifications -->
+                            <div id="notifications" class="tab-pane fade">
+                                <div class="search">
+                                    <form class="form-inline position-relative">
+                                        <input type="search" class="form-control" id="notice"
+                                            placeholder="Filter notifications...">
+                                        <button type="button" class="btn btn-link loop"><i
+                                                class="material-icons filter-list">filter_list</i></button>
+                                    </form>
+                                </div>
+                                <div class="notifications">
+                                    <h1>Notifications</h1>
+                                    <div class="list-group" id="alerts" role="tablist">
+                                        <!-- Placeholders -->
+                                        <p class="text-center mt-4">No notifications.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End of Notifications -->
+                            <!-- Start of Settings -->
+                            <div class="tab-pane fade" id="settings">
+                                <div class="settings">
+                                    <div class="profile">
+                                        <img class="avatar-xl" src="{% static 'dist/img/avatars/avatar-male-1.jpg' %}"
+                                            alt="avatar">
+                                        <h1><a href="#">{{ request.user.username }}</a></h1>
+                                        <span>{{ request.user.email }}</span>
+                                    </div>
+                                    <div class="categories" id="accordionSettings">
+                                        <h1>Settings</h1>
+                                        <!-- Start of Logout -->
+                                        <div class="category">
+                                            <form action="{% url 'logout' %}" method="post" style="width: 100%;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="title collapsed"
+                                                    style="border: none; background: none; width: 100%; text-align: left; padding: 20px 0;">
+                                                    <i class="material-icons md-30 online">power_settings_new</i>
+                                                    <div class="data">
+                                                        <h5>Power Off</h5>
+                                                        <p>Log out of your account</p>
+                                                    </div>
+                                                    <i class="material-icons">keyboard_arrow_right</i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <!-- End of Logout -->
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End of Settings -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End of Sidebar -->
 
-<style>
-    .user-list-container {
-        padding: 2rem;
-        max-width: 800px;
-        margin: 0 auto;
-    }
+            <div class="main">
+                <div class="tab-content" id="nav-tabContent">
+                    <div class="babble tab-pane fade active show" id="list-chat" role="tabpanel"
+                        aria-labelledby="list-chat-list">
+                        <!-- Start of Chat -->
+                        <div class="chat" id="chat1">
+                            <div class="top">
+                                <!-- Top bar placeholder if needed, usually shows active chat info -->
+                            </div>
+                            <div class="content empty">
+                                <div class="container">
+                                    <div class="col-md-12">
+                                        <div class="no-messages">
+                                            <i class="material-icons md-48">forum</i>
+                                            <p>Select a contact to start chatting.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- End of Chat -->
+                    </div>
+                </div>
+            </div>
+        </div> <!-- Layout -->
+    </main>
+    <!-- Bootstrap/Swipe core JavaScript -->
+    <script src="{% static 'dist/js/jquery-3.3.1.slim.min.js' %}"></script>
+    <script>window.jQuery || document.write('<script src="{% static "dist/js/vendor/jquery-slim.min.js" %}"><\/script>')</script>
+    <script src="{% static 'dist/js/vendor/popper.min.js' %}"></script>
+    <script src="{% static 'dist/js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'dist/js/swipe.min.js' %}"></script>
+</body>
 
-    .user-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    .user-card {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        padding: 1.5rem;
-        border-radius: 12px;
-        text-decoration: none;
-        color: white;
-        transition: transform 0.2s, background 0.2s;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .user-card:hover {
-        transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    .user-info {
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        font-size: 1.1rem;
-        font-weight: 500;
-    }
-
-    .status-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-    }
-
-    .status-dot.online {
-        background-color: #4ade80;
-        /* Green */
-        box-shadow: 0 0 10px #4ade80;
-    }
-
-    .status-dot.offline {
-        background-color: #94a3b8;
-        /* Grey */
-    }
-</style>
-{% endblock %}
+</html>

@@ -9,7 +9,7 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('chat:room', room_name='general') # Redirect to chat room after registration
+            return redirect('chat:user_list') # Redirect to chat room after registration
     else:
         form = UserRegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -20,7 +20,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('chat:room', room_name='general') # Redirect to chat room after login
+            return redirect('chat:user_list') # Redirect to chat room after login
     else:
         form = UserLoginForm(request)
     return render(request, 'accounts/login.html', {'form': form})
